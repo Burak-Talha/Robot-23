@@ -19,6 +19,7 @@ public class Constants {
         public static final double ARM_PPR = 48;
         public static final double K_ARMTICK2DEGREE = 360 / ARM_PPR;
         public static final double K_EXTENSIBLE_TICK2METER = 0;
+        public static final double K_ARM_HEIGHT_M = 0.40;
     }
 
     public static class VisionConstants{

@@ -3,13 +3,21 @@ package frc.robot.lib.frc7682;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Twist3d;
+import frc.robot.Constants;
 
 public class ArmOdometry {
 
     private Pose3d armPosition;
-    private Twist3d twist3;
     private double height;
+
+    public static ArmOdometry armOdometry = null;
+
+    public static final ArmOdometry getInstance(){
+        if(armOdometry == null){
+            armOdometry = new ArmOdometry();
+        }
+        return armOdometry;
+    }
 
     public ArmOdometry(){
         armPosition = new Pose3d();
@@ -19,17 +27,19 @@ public class ArmOdometry {
         height = newHeight;
     }
 
-    public void update(Pose2d currentRobotPose, double turretAngle, double shoulderAngle, double armLength){
-        double armX = (currentRobotPose.getX() + Math.cos(turretAngle) * (Math.cos(shoulderAngle) * armLength));
-        double armY = currentRobotPose.getY() + Math.sin(turretAngle) * (Math.cos(shoulderAngle) * armLength);
-        double armZ = (Math.sin(shoulderAngle) * armLength) + height;
-        armPosition = new Pose3d(armX, armY, armZ, new Rotation3d());
+    public void update(double turretAngle, double shoulderAngle, double armLength){
+        double armX = (Math.cos(turretAngle) * (Math.cos(shoulderAngle) * armLength));
+        double armY = (Math.sin(turretAngle) * (Math.cos(shoulderAngle) * armLength));
+        double armZ = (Constants.ArmConstants.DEFAULT_ARM_LENGTH + (Math.sin(shoulderAngle) * armLength) + height);
+        armPosition = new Pose3d(armX, armY, armZ, new Rotation3d(0, shoulderAngle, turretAngle));
     }
 
     public Pose3d getEstimatedPosition(){
         return armPosition;
     }
 
-    public void reset(){}
+    public void reset(){
+        armPosition = new Pose3d();
+    }
     
 }

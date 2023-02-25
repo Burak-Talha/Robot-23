@@ -40,13 +40,24 @@ public class RobotState{
 
     public void update(Rotation2d gyroAngle, double leftDistance, double rightDistance){
         differentialDrivePoseEstimator.update(gyroAngle, leftDistance, rightDistance);
-        armOdometry.update(differentialDrivePoseEstimator.getEstimatedPosition(), turret.getAngle(), arm.getShoulderAngle(), arm.getExtensionDistance());
+        armOdometry.update(turret.getAngle(), arm.getShoulderAngle(), arm.getExtensionDistance());
     }
 
+    public void addObservationForRobotPose(Pose2d visionMeasurement, double timestamp){
+        differentialDrivePoseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
+    }
+
+    // Arm odometry based-on chassis
+    public Pose3d robotArmPose3d(){
+        return new Pose3d(armPositionPose3d().getX() + robotPositionPose2d().getX(), armPositionPose3d().getY() + robotPositionPose2d().getY(), armPositionPose3d().getZ(), armPositionPose3d().getRotation());
+    }
+
+    // Only Arm Odometry
     public Pose3d armPositionPose3d(){
         return armOdometry.getEstimatedPosition();
     }
 
+    // Only Chassis odometry
     public Pose2d robotPositionPose2d(){
         return differentialDrivePoseEstimator.getEstimatedPosition();
     }

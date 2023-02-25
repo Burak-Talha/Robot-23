@@ -50,7 +50,7 @@ public class Drive extends Subsystem{
 
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
         differentialDrivePoseEstimator =
-         new DifferentialDrivePoseEstimator(Constants.DriveConstants.DIFFERENTIAL_DRIVE_KINEMATICS,
+        new DifferentialDrivePoseEstimator(Constants.DriveConstants.DIFFERENTIAL_DRIVE_KINEMATICS,
                                             getRotation2d(),
                                             getLeftEncoderMeter(),
                                             getRightEncoderMeter(),
