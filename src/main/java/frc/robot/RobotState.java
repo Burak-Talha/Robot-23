@@ -17,7 +17,16 @@ public class RobotState{
     private Turret turret;
     private Vision vision;
 
-    RobotState(Rotation2d gyroAngle, double leftEncoderMeter, double rightEncoderMeter, Pose2d pose2d){
+    private static RobotState robotState = null;
+
+    public static RobotState getInstance(){
+        if(robotState == null){
+            robotState = new RobotState(new Rotation2d(), 0, 0, new Pose2d());
+        }
+        return robotState;
+    }
+
+    public RobotState(Rotation2d gyroAngle, double leftEncoderMeter, double rightEncoderMeter, Pose2d pose2d){
         arm = Arm.getInstance();
         turret = Turret.getInstance();
         vision = Vision.getInstance();
@@ -40,10 +49,11 @@ public class RobotState{
 
     public void update(Rotation2d gyroAngle, double leftDistance, double rightDistance){
         differentialDrivePoseEstimator.update(gyroAngle, leftDistance, rightDistance);
-        armOdometry.update(turret.getAngle(), arm.getShoulderAngle(), arm.getExtensionDistance());
+        armOdometry.update(turret.getAngle(), arm.shoulderAngle(), arm.extensibleDistance());
     }
 
     public void addObservationForRobotPose(Pose2d visionMeasurement, double timestamp){
+        // This method is changeable with this algo -> increasing odometry accuracy with april tag vision(based on id of april tag(pose2d))
         differentialDrivePoseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
     }
 
@@ -80,8 +90,4 @@ public class RobotState{
      * robot end effector position -> target | Transformations
     */
 
-
-
-
-    
 }
