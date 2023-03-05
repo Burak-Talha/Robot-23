@@ -31,6 +31,8 @@ public class Constants {
         public static final double SHOULDER_DOWN_LIMIT = 0;
         public static final double k_ARM_ANGLE_OFFSET = 30;
         public static final double SHOULDER_PPR = 48;
+        public static final double BY_HAND_DEGREES_OFFSET = 0.001;
+        public static final double ANGLE_OF_MOVEMENT = 240;
         // Extensible
         public static final int MASTER_EXTENSION_ID = 6;
         public static final double MAX_ARM_LENGTH = 1.5;
@@ -41,10 +43,16 @@ public class Constants {
         public static final double EXTENSIBLE_KF = 0;
         public static final double EXTENSIBLE_UP_LIMIT = 0;
         public static final double EXTENSIBLE_DOWN_LIMIT = 0;
+        public static final double RANGE_OF_MOVEMENT = 0.4;
         // Calculations
         public static final double K_ARMTICK2DEGREE = 360 / SHOULDER_PPR;
         public static final double K_ARM_HEIGHT_M = 0.40;
         public static final double K_EXTENSIBLE_TICK2METER = 0;
+    }
+
+    public static class IntakeConstants{
+        public static final double INTAKE_RPM_RATE = 400 / 20;
+        public static final double INTAKE_CONFIDANCE_DOWN_LIMIT = 0.5;
     }
 
     public static class VisionConstants{
