@@ -2,7 +2,7 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
@@ -24,11 +24,18 @@ public class Arm extends Subsystem{
     private SynchronousPIDF extensiblePidf;
     private SynchronousPIDF rotatablePidf;
 
+    public enum ProcessingType{
+        AUTO_CLOSED_LOOP,
+        BY_HAND,
+        MANUAL
+    }
+
     public enum ValidationType{
         EXTENSIBLE,
         ROTATABLE
     }
-
+    
+    private ProcessingType currentProcessingType = ProcessingType.AUTO_CLOSED_LOOP;
     private PeriodicIO periodicIO = new PeriodicIO();
 
     public static Arm arm = null;
@@ -50,7 +57,6 @@ public class Arm extends Subsystem{
 
         extensiblePidf = new SynchronousPIDF(Constants.ArmConstants.EXTENSIBLE_KP, Constants.ArmConstants.EXTENSIBLE_KI, Constants.ArmConstants.EXTENSIBLE_KD, Constants.ArmConstants.EXTENSIBLE_KF);
         rotatablePidf = new SynchronousPIDF(Constants.ArmConstants.SHOULDER_KP, Constants.ArmConstants.SHOULDER_KI, Constants.ArmConstants.SHOULDER_KD, Constants.ArmConstants.SHOULDER_KF);
-
         rotatableSlave.follow(rotatableMaster);
     }
 
@@ -64,12 +70,13 @@ public class Arm extends Subsystem{
 
     @Override
     public void writePeriodicOutputs() {
-        // TODO Auto-generated method stub
-        
         rotatableMaster.set(periodicIO.rotatableDemand);
         extensibleMotor.set(periodicIO.extensibleDemand);
         calculateAllMeasurement();
-        calculateDemands();
+        
+        if(!isEncoderFaultExist() && currentProcessingType == ProcessingType.AUTO_CLOSED_LOOP || currentProcessingType == ProcessingType.BY_HAND){
+            calculateClosedLoopDemands();
+        }
     }
 
     @Override
@@ -77,15 +84,33 @@ public class Arm extends Subsystem{
         // Example Usage
         SmartDashboard.putNumber("Arm Angle :", periodicIO.currentShoulderAngle);
         SmartDashboard.putNumber("Extensible Meter :", periodicIO.currentExtensibleMeter);
-        SmartDashboard.putString("Motor Modes :", periodicIO.neutralMode.toString());
+        SmartDashboard.putString("Arm Mode :", currentProcessingType.toString());
+        SmartDashboard.putString("Arm Motor Modes :", periodicIO.neutralMode.toString());
     }
 
-        private void calculateDemands(){
+        public void setDesiredProcessingType(ProcessingType type){
+            currentProcessingType = type;
+        }
+
+        public void calculateClosedLoopDemands(){
             periodicIO.rotatableDemand = rotatablePidf.calculate(periodicIO.currentShoulderAngle, Timer.getFPGATimestamp());
             periodicIO.extensibleDemand = extensiblePidf.calculate(periodicIO.currentExtensibleMeter, Timer.getFPGATimestamp());
         }
 
-        public void setSetpointPIDValues(double shoulderAngleSetpoint, double extensibleMeterSetpoint){
+        // 3 main method for any usage case
+        public void setMotor(double rotatableDemand, double extensibleDemand){
+            periodicIO.rotatableDemand = rotatableDemand;
+            periodicIO.extensibleDemand = extensibleDemand;
+        }
+
+        public void setSetpointByHandClosedLoop(double rotatableInput, double extensibleInput){
+            double rotatableDegreeSetpoint = Constants.ArmConstants.k_ARM_ANGLE_OFFSET + periodicIO.currentShoulderAngle + rotatableInput * Constants.ArmConstants.ANGLE_OF_MOVEMENT;
+            double extensibleMeterSetpoint = Constants.ArmConstants.DEFAULT_ARM_LENGTH + periodicIO.currentExtensibleMeter + extensibleInput * Constants.ArmConstants.RANGE_OF_MOVEMENT;
+
+            setSetpointAutoClosedLoop(rotatableDegreeSetpoint, extensibleMeterSetpoint);
+        }
+
+        public void setSetpointAutoClosedLoop(double shoulderAngleSetpoint, double extensibleMeterSetpoint){
             shoulderAngleSetpoint = validatePIDSetpoints(ValidationType.ROTATABLE, shoulderAngleSetpoint);
             extensibleMeterSetpoint = validatePIDSetpoints(ValidationType.EXTENSIBLE, extensibleMeterSetpoint);
 
@@ -93,8 +118,7 @@ public class Arm extends Subsystem{
             extensiblePidf.setSetpoint(extensibleMeterSetpoint);
         }
 
-        // Validation Of Setpoints
-
+        // Validation Of PID Setpoints for mechanical limits
         private double validatePIDSetpoints(ValidationType type, double desiredSetpoint){
             if(type == ValidationType.EXTENSIBLE){
                 return validExtensibleSetpoint(desiredSetpoint);
@@ -133,7 +157,8 @@ public class Arm extends Subsystem{
             extensibleMotor.stopMotor();
             rotatableMaster.stopMotor();
         }
-    
+
+        // Motor Controllers Modes        
         public void openBrakeMode(){
             setNeutralMode(IdleMode.kBrake);
             periodicIO.neutralMode = IdleMode.kBrake;
@@ -150,6 +175,8 @@ public class Arm extends Subsystem{
             extensibleMotor.setIdleMode(mode);
         }
 
+    
+    // Getters
     public double getRotatableEncoderPpr(){
         return rotatableEncoder.getCountsPerRevolution() / 4;
     }
@@ -158,17 +185,23 @@ public class Arm extends Subsystem{
         return extensibleEncoder.getCountsPerRevolution() / 4;
     }
 
+    public boolean isEncoderFaultExist(){
+        return rotatableMaster.getFault(FaultID.kSensorFault) || extensibleMotor.getFault(FaultID.kSensorFault);
+    }
+
     private void calculateAllMeasurement(){
         shoulderAngle();
-        extensionDistance();
+        extensibleDistance();
     }
 
-    private void shoulderAngle(){
+    public double shoulderAngle(){
         periodicIO.currentShoulderAngle = getRotatableEncoderPpr() * Constants.ArmConstants.K_ARMTICK2DEGREE;
+        return periodicIO.currentShoulderAngle;
     }
 
-    private void extensionDistance(){
+    public double extensibleDistance(){
         periodicIO.currentExtensibleMeter = getExtensibleEncoderPpr() * Constants.ArmConstants.K_EXTENSIBLE_TICK2METER;
+        return periodicIO.currentExtensibleMeter;
     }
 
     @Override

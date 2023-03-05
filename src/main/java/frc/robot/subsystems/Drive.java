@@ -4,11 +4,7 @@ import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -32,8 +28,6 @@ public class Drive extends Subsystem{
 
     // Drive
     private final DifferentialDrive differentialDrive;
-    private final DifferentialDrivePoseEstimator differentialDrivePoseEstimator;
-
     private static Drive drive = null;
 
 
@@ -49,12 +43,6 @@ public class Drive extends Subsystem{
         leftEncoder = new Encoder(2, 3);
 
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
-        differentialDrivePoseEstimator =
-        new DifferentialDrivePoseEstimator(Constants.DriveConstants.DIFFERENTIAL_DRIVE_KINEMATICS,
-                                            getRotation2d(),
-                                            getLeftEncoderMeter(),
-                                            getRightEncoderMeter(),
-                                            new Pose2d());
 
         // Follow Master's
         leftSlave.follow(leftMaster);
@@ -74,11 +62,9 @@ public class Drive extends Subsystem{
     }
 
     public static class PeriodicIO {
-        double leftDemand;
-        double rightDemand;
-        double leftEncoder;
-        double rightEncoder;
-        double currentAngle;
+        double rightMeterDistance;
+        double leftMeterDistance;
+        double currentYaw;
         WheelSpeeds wheelSpeeds;
     }
 
@@ -88,17 +74,16 @@ public class Drive extends Subsystem{
     // Optional design pattern for caching periodic reads to avoid hammering the HAL/CAN.
     public void readPeriodicInputs() {
         // Example Usage
-        SmartDashboard.putNumber("Robot Pose X:", differentialDrivePoseEstimator.getEstimatedPosition().getX());
-        SmartDashboard.putNumber("Robot Pose Y:", differentialDrivePoseEstimator.getEstimatedPosition().getY());
+        SmartDashboard.putNumber("Left Encoder", periodicIO.leftMeterDistance);
+        SmartDashboard.putNumber("Right Encoder", periodicIO.rightMeterDistance);
+        SmartDashboard.putNumber("Yaw", periodicIO.currentYaw);
     }
 
     @Override
     // Optional design pattern for caching periodic writes to avoid hammering the HAL/CAN.
     public void writePeriodicOutputs() {
-        differentialDrivePoseEstimator.update(getRotation2d(), getLeftEncoderMeter(), getRightEncoderMeter());
         setMotor(periodicIO.wheelSpeeds);
     }
-
 
     // Driver Methods
     public void arcadeDrive(double speed, double rotation){
@@ -134,6 +119,11 @@ public class Drive extends Subsystem{
         rightSlave.stopMotor();
     }
 
+    public void setMaxOutputDifferential(double maxOutput){
+        differentialDrive.setMaxOutput(maxOutput);
+    }
+
+    // Motor Controllers Modes
     public void openBrakeMode(){
         setNeutralMode(IdleMode.kBrake);
     }
@@ -150,21 +140,19 @@ public class Drive extends Subsystem{
         rightSlave.setIdleMode(mode);
     }
 
-    // Pose Transactions
-    public Pose2d getPose(){
-        return differentialDrivePoseEstimator.getEstimatedPosition();
+    // Sensors Configurations
+    public void resetEncoders(){
+        leftEncoder.reset();
+        rightEncoder.reset();
     }
 
-    public void addVisionForPose(Pose2d pose2d, double timestamp){
-        differentialDrivePoseEstimator.addVisionMeasurement(pose2d, timestamp);
+    public void resetGyro(){
+        navx.reset();
     }
 
-    public void resetRobotPose(Rotation2d angle, double leftEncoderMeter, double rightEncoderMeter, Pose2d newPose){
-        differentialDrivePoseEstimator.resetPosition(angle, leftEncoderMeter, rightEncoderMeter, newPose);        
-    }
-
-    public void resetRobotPose(){
-        differentialDrivePoseEstimator.resetPosition(new Rotation2d(), 0, 0, new Pose2d());
+    public void resetAll(){
+        resetEncoders();
+        resetGyro();
     }
 
     // Encoder Informations
@@ -173,11 +161,13 @@ public class Drive extends Subsystem{
     }
 
     public double getLeftEncoderMeter(){
-        return leftEncoder.get() * Constants.DriveConstants.KDRIVETICK2METER;
+        periodicIO.leftMeterDistance = leftEncoder.get() * Constants.DriveConstants.KDRIVETICK2METER;
+        return periodicIO.leftMeterDistance;
     }
 
     public double getRightEncoderMeter(){
-        return rightEncoder.get() * Constants.DriveConstants.KDRIVETICK2METER;
+        periodicIO.rightMeterDistance = rightEncoder.get() * Constants.DriveConstants.KDRIVETICK2METER;
+        return periodicIO.rightMeterDistance;
     }
 
     // IMU Informations
@@ -191,7 +181,8 @@ public class Drive extends Subsystem{
 
     // Get Pitch, Roll, Yaw
     public double getYaw(){
-        return navx.getYaw();
+        periodicIO.currentYaw = navx.getYaw();
+        return periodicIO.currentYaw;
     }
 
     public double getPitch(){
@@ -205,7 +196,7 @@ public class Drive extends Subsystem{
     @Override
     public void stop() {
         // TODO Auto-generated method stub
-        
+        differentialDrive.stopMotor();
     }
 
     @Override

@@ -2,8 +2,10 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.lib.frc254.Subsystem;
 
-public class Infrastructure {
+public class Infrastructure extends Subsystem{
     
     private final PowerDistribution powerDistribution;
 
@@ -33,6 +35,11 @@ public class Infrastructure {
             currentHealthState = HealthState.GOOD;
         }
     }
+
+    @Override
+    public void readPeriodicInputs() {
+     SmartDashboard.putString("Battery State :", getHealthState().name());   
+    }
     
     public HealthState getHealthState(){
         return currentHealthState;
@@ -44,6 +51,23 @@ public class Infrastructure {
 
     public double getTemperature(){
         return powerDistribution.getTemperature();
+    }
+
+    @Override
+    public void stop() {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public boolean checkSystem() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public void outputTelemetry() {
+        // TODO Auto-generated method stub
+        
     }
 
 }
