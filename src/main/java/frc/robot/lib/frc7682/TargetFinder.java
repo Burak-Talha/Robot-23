@@ -1,29 +1,41 @@
 package frc.robot.lib.frc7682;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import edu.wpi.first.math.geometry.Pose2d;
+import java.util.stream.Collectors;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.FieldConstants;
 
 public class TargetFinder {
 
-    private HashMap<String, Target> targets = new HashMap<>();
 
-    private Pose2d robotPose;
-
+    private Pose3d armPose;
     private String currentTargetName;
-    private Target currentTarget;
+    private Target lastTarget;
+    private List<Target> targets;
+
+    public enum TargetType {
+        GET,
+        POST
+    }
+
+    public enum ObjectType{
+        CONE,
+        CUBE,
+        BOTH
+    }
+
+    public enum DesiredPosition{
+        UP,
+        MID,
+        DOWN
+    }
+
     public static TargetFinder targetFinder = null;
 
-    public TargetFinder(Pose2d initialPose){
-        robotPose = initialPose;
-    }
     public TargetFinder(){
-        robotPose = new Pose2d();
+        armPose = new Pose3d();
     }
-
 
     public static TargetFinder getInstance(){
         if(targetFinder == null){
@@ -33,34 +45,40 @@ public class TargetFinder {
     }
 
     // Should work periodically
-    public void update(Pose2d estimatedPose2d){
-        robotPose = estimatedPose2d;
+    public void update(Pose3d estimatedArmPose){
+        armPose = estimatedArmPose;
     }
 
-    public Target bestTarget(){
+    public Target bestTarget(TargetType targetType, ObjectType objectType, DesiredPosition desiredPosition){
         // This methods will return best target by pose
-        return null;
-    }
+        //armPose.getTranslation().getDistance()
+        Target target = null;
 
-    public void resetTargets(){
-        targets.clear();
-    }
-
-    public void CompleteCurrentTarget(){
-        if(targets.remove(currentTargetName, currentTarget)){
-            currentTarget.isCompleted = true;
-            targets.put(currentTargetName, currentTarget);
+        // Choosing alliance specific targets
+        targets = FieldConstants.LoadingZone.BLUE_TARGETS;
+        if(DriverStation.getAlliance() == DriverStation.Alliance.Red){
+            targets = FieldConstants.LoadingZone.RED_TARGETS;
         }
-    }
 
-    public void addTarget(String targetName ,Target target){
-        targets.put(targetName, target);
-    }
-
-    public void addTargets(Pose3d[] poses){
-        for(int i=0;i<poses.length; i++){
-            targets.put(Boolean.FALSE, poses[i]);
+        // Find best target based on criteria and distance
+        List<Target> filteredTarget = targets.stream().filter(x -> x.objectType == objectType && x.isCompleted == false && x.targetType == targetType).collect(Collectors.toList());
+        // Get minimum distance target
+        double minDistance = Double.MAX_VALUE;
+        for(Target t : filteredTarget){
+            double distance = armPose.getTranslation().getDistance(t.target.getTranslation());
+            if(distance < minDistance){
+                target = t;
+            }
         }
-        System.out.println("Targets added!!");
+        if(target != null){
+        lastTarget = target;
+        }
+        return lastTarget;
+    }
+
+    public void completeTarget(){
+        if(lastTarget != null){
+            lastTarget.isCompleted = true;
+        }
     }
 }
