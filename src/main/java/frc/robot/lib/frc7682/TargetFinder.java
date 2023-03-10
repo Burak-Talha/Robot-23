@@ -10,19 +10,19 @@ public class TargetFinder {
 
 
     private Pose3d armPose;
-    private String currentTargetName;
     private Target lastTarget;
     private List<Target> targets;
+    private TargetType currnetTargetType = TargetType.NONE;
 
     public enum TargetType {
         GET,
-        POST
+        POST,
+        NONE
     }
 
     public enum ObjectType{
         CONE,
-        CUBE,
-        BOTH
+        CUBE
     }
 
     public enum DesiredPosition{
@@ -49,7 +49,11 @@ public class TargetFinder {
         armPose = estimatedArmPose;
     }
 
-    public Target bestTarget(TargetType targetType, ObjectType objectType, DesiredPosition desiredPosition){
+    public void changeTargetType(TargetType targetType){
+        currnetTargetType = targetType;
+    }
+
+    public Target bestTarget(ObjectType objectType, DesiredPosition desiredPosition){
         // This methods will return best target by pose
         //armPose.getTranslation().getDistance()
         Target target = null;
@@ -61,7 +65,7 @@ public class TargetFinder {
         }
 
         // Find best target based on criteria and distance
-        List<Target> filteredTarget = targets.stream().filter(x -> x.objectType == objectType && x.isCompleted == false && x.targetType == targetType).collect(Collectors.toList());
+        List<Target> filteredTarget = targets.stream().filter(x -> x.objectType == objectType && x.isCompleted == false && x.targetType == currnetTargetType && x.desiredPosition == desiredPosition).collect(Collectors.toList());
         // Get minimum distance target
         double minDistance = Double.MAX_VALUE;
         for(Target t : filteredTarget){
@@ -70,10 +74,18 @@ public class TargetFinder {
                 target = t;
             }
         }
+
+        // Uyari mesaji : SmartDashboard
         if(target != null){
         lastTarget = target;
         }
-        return lastTarget;
+
+        if(target==null){
+            System.out.println("No target found!!! : Using last target");
+            return lastTarget;
+        }
+
+        return target;
     }
 
     public void completeTarget(){
