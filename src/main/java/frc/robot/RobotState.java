@@ -17,6 +17,9 @@ public class RobotState{
     private Turret turret;
     private Vision vision;
 
+    // Starter position with SmartDashboard
+    //private Pose2d startPosition = 
+
     private static RobotState robotState = null;
 
     public static RobotState getInstance(){
@@ -49,7 +52,7 @@ public class RobotState{
 
     public void update(Rotation2d gyroAngle, double leftDistance, double rightDistance){
         differentialDrivePoseEstimator.update(gyroAngle, leftDistance, rightDistance);
-        armOdometry.update(turret.getAngle(), arm.shoulderAngle(), arm.extensibleDistance());
+        armOdometry.update(turret.getTurretAngle(), arm.shoulderAngle(), arm.extensibleDistance());
     }
 
     public void addObservationForRobotPose(Pose2d visionMeasurement, double timestamp){
@@ -71,6 +74,7 @@ public class RobotState{
     public Pose2d robotPositionPose2d(){
         return differentialDrivePoseEstimator.getEstimatedPosition();
     }
+
 
     /*  
      *      ODOMETRY
