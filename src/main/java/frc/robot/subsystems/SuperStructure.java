@@ -1,12 +1,13 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import frc.robot.RobotState;
 import frc.robot.lib.frc254.Subsystem;
+import frc.robot.lib.frc7682.Target;
 import frc.robot.lib.frc7682.TargetFinder;
 import frc.robot.lib.frc7682.TargetFinder.DesiredPosition;
 import frc.robot.lib.frc7682.TargetFinder.ObjectType;
 import frc.robot.lib.frc7682.TargetFinder.TargetType;
-import frc.robot.subsystems.Arm.ProcessingType;
 
 public class SuperStructure extends Subsystem{
 
@@ -22,9 +23,10 @@ public class SuperStructure extends Subsystem{
         POSTING,
         TURTLING,
         BALANCING,
-        IDLE,
         MANUAL
     }
+
+    private SystemState systemState = SystemState.MANUAL;
 
     private static SuperStructure superStructure = null;
 
@@ -42,30 +44,75 @@ public class SuperStructure extends Subsystem{
         targetFinder.update(robotState.armPositionPose3d());
     }
 
+    private PeriodicIO periodicIO = new PeriodicIO();
+
+    public class PeriodicIO{
+        public double shoulderAngleSetpoint;
+        public double turretAngleSetpoint;
+        public double extensibleSetpoint;
+        
+        // Shows the remaining x,y,z axes to the target
+        public double x;
+        public double y;
+        public double z;
+    }
+
     // General PID Setpoint methods
+    private void calculateAllSystemSetpoint(){
+        calculateTurretSetpointForTarget();
+        calculateArmSetpointForTarget();
+    }
     
+    // Calculations for the arm
+    private void calculateArmSetpointForTarget(){
+        double x = periodicIO.x;
+        double z = periodicIO.z;
+
+        periodicIO.shoulderAngleSetpoint = Math.atan2(z, Math.abs(x));
+        periodicIO.extensibleSetpoint = Math.sqrt(Math.pow(z, 2) + Math.pow(x, 2));
+    }
+
+    private void calculateTurretSetpointForTarget(){
+        periodicIO.turretAngleSetpoint = Math.atan2(periodicIO.y, periodicIO.x) - drive.getAngle();
+    }
+
+    // Base x, y, z calculator | Should work periodically
+    private void calculateDistanceToTarget(DesiredPosition desiredPosition, ObjectType objectType){
+        Target currentTarget = targetFinder.bestTarget(objectType, desiredPosition);
+        Pose3d currentArmPosition = robotState.armPositionPose3d();
+
+        periodicIO.x = currentTarget.target.getX() - currentArmPosition.getX();
+        periodicIO.y = currentTarget.target.getY() - robotState.robotPositionPose2d().getY();
+        periodicIO.z = currentTarget.target.getZ() - currentArmPosition.getZ();
+    }
+
+    public void setTargetFinderTargetType(TargetType targetType){
+        targetFinder.changeTargetType(targetType);
+    }
 
     // General information methods
-    public boolean isArmReady(){
-        return false;
+    public boolean isShoulderReady(){
+        return arm.rotatableAtSetpoint();
     }
 
     public boolean isTurretReady(){
-        return false;
+        return turret.turretAngleAtSetpoint();
     }
 
     public boolean isExtensibleReady(){
-        return false;
+        return arm.extensibleAtSetpoint();
     }
 
     public double getTargetDistanceToArm(){
+        if(isShoulderReady()){
+            return Math.sqrt(Math.pow(periodicIO.x, 2) + Math.pow(periodicIO.z, 2)) - arm.extensibleDistance();
+        }
         return 0;
     }
 
     @Override
     public void stop() {
         // TODO Auto-generated method stub
-        
     }
 
     @Override
