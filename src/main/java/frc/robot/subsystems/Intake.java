@@ -25,14 +25,14 @@ public class Intake extends Subsystem{
     private IntakeMode currentIntakeMode = IntakeMode.MANUAL;
 
     Intake(){
-        intakeMaster = new CANSparkMax(7, MotorType.kBrushless);
-        intakePidf = new SynchronousPIDF(0, 0, 0, 0);
+        intakeMaster = new CANSparkMax(Constants.IntakeConstants.INTAKE_MASTER_ID, MotorType.kBrushless);
+        intakePidf = new SynchronousPIDF(Constants.IntakeConstants.INTAKE_KP, Constants.IntakeConstants.INTAKE_KI, Constants.IntakeConstants.INTAKE_KD, Constants.IntakeConstants.INTAKE_KF);
         intakeEncoder = intakeMaster.getEncoder();
     }
 
     private static Intake intake = null;
 
-    public Intake getInstance(){
+    public static Intake getInstance(){
         if(intake == null){
             intake = new Intake();
         }
