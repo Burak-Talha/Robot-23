@@ -5,13 +5,16 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive.WheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.lib.frc254.Subsystem;
+import frc.robot.lib.frc254.util.SynchronousPIDF;
 
 public class Drive extends Subsystem{
 
@@ -26,10 +29,17 @@ public class Drive extends Subsystem{
     private final Encoder leftEncoder;
     private final Encoder rightEncoder;
 
+    private final SynchronousPIDF balancePidf;
+
     // Drive
     private final DifferentialDrive differentialDrive;
-    private static Drive drive = null;
 
+    private DriveMode currentDriveMode = DriveMode.SMOOTH;
+
+    public enum DriveMode{
+        SMOOTH,
+        BALANCE
+    }
 
     Drive(){
         // Initialization
@@ -52,8 +62,11 @@ public class Drive extends Subsystem{
         rightMaster.setInverted(true);
         rightSlave.setInverted(true);
         
+        balancePidf = new SynchronousPIDF(Constants.DriveConstants.BALANCE_KP, Constants.DriveConstants.BALANCE_KI, Constants.DriveConstants.BALANCE_KD, Constants.DriveConstants.BALANCE_KF);
+        balancePidf.setSetpoint(0.0);
     }
 
+    private static Drive drive = null;
     public static final Drive getInstance(){
         if(drive == null){
             drive = new Drive();
@@ -85,9 +98,31 @@ public class Drive extends Subsystem{
         setMotor(periodicIO.wheelSpeeds);
     }
 
+    public void cleverDrive(double speed, double rotation){
+        switch(currentDriveMode){
+            case SMOOTH:
+                // Smooth Drive
+                arcadeDrive(speed, rotation);
+                break;
+            case BALANCE:
+                // Balance Drive
+                balanceDrive();
+                break;
+        }
+    }
+
+    public void setDriveMode(DriveMode driveMode){
+        currentDriveMode = driveMode;
+    }
+
     // Driver Methods
-    public void arcadeDrive(double speed, double rotation){
+    private void arcadeDrive(double speed, double rotation){
        periodicIO.wheelSpeeds = DifferentialDrive.arcadeDriveIK(speed, rotation, false);
+    }
+
+    private void balanceDrive(){
+        double wheelSpeed = balancePidf.calculate(getPitch(), Timer.getFPGATimestamp());
+        periodicIO.wheelSpeeds = new WheelSpeeds(wheelSpeed, wheelSpeed);
     }
 
     public void tankDrive(double leftSpeed, double rightSpeed){
@@ -95,7 +130,7 @@ public class Drive extends Subsystem{
         periodicIO.wheelSpeeds.right = rightSpeed;
     }
 
-    public void setMotor(WheelSpeeds wheelSpeeds){
+    private void setMotor(WheelSpeeds wheelSpeeds){
         leftMaster.set(wheelSpeeds.left);
         rightMaster.set(wheelSpeeds.right);
     }
@@ -172,7 +207,7 @@ public class Drive extends Subsystem{
 
     // IMU Informations
     public double getAngle(){
-        return navx.getAngle();
+        return Math.abs(navx.getAngle() % 360);
     }
 
     public Rotation2d getRotation2d(){
@@ -191,6 +226,10 @@ public class Drive extends Subsystem{
 
     public double getRoll(){
         return navx.getRoll();
+    }
+
+    public DifferentialDriveWheelSpeeds wheelSpeeds(){
+        return new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
     }
 
     @Override
