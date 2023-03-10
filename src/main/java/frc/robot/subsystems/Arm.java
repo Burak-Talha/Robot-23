@@ -73,7 +73,9 @@ public class Arm extends Subsystem{
         rotatableMaster.set(periodicIO.rotatableDemand);
         extensibleMotor.set(periodicIO.extensibleDemand);
         calculateAllMeasurement();
-        
+
+        // if sensors is ok and we want the  control manually we should control those situations
+
         if(!isEncoderFaultExist() && currentProcessingType == ProcessingType.AUTO_CLOSED_LOOP || currentProcessingType == ProcessingType.BY_HAND){
             calculateClosedLoopDemands();
         }
@@ -92,15 +94,22 @@ public class Arm extends Subsystem{
             currentProcessingType = type;
         }
 
-        public void calculateClosedLoopDemands(){
+        private void calculateClosedLoopDemands(){
             periodicIO.rotatableDemand = rotatablePidf.calculate(periodicIO.currentShoulderAngle, Timer.getFPGATimestamp());
             periodicIO.extensibleDemand = extensiblePidf.calculate(periodicIO.currentExtensibleMeter, Timer.getFPGATimestamp());
         }
 
-        // 3 main method for any usage case
-        public void setMotor(double rotatableDemand, double extensibleDemand){
-            periodicIO.rotatableDemand = rotatableDemand;
-            periodicIO.extensibleDemand = extensibleDemand;
+        public void controlArm(double rotatable, double extensible){
+            if(currentProcessingType == ProcessingType.MANUAL){
+                setManual(rotatable, extensible);
+            }else if(currentProcessingType == ProcessingType.BY_HAND){
+                setSetpointByHandClosedLoop(rotatable, extensible);
+            }
+        }
+
+        public void setManual(double rotatable, double extensible){
+            periodicIO.rotatableDemand = rotatable;
+            periodicIO.extensibleDemand = extensible;
         }
 
         public void setSetpointByHandClosedLoop(double rotatableInput, double extensibleInput){
@@ -175,13 +184,24 @@ public class Arm extends Subsystem{
             extensibleMotor.setIdleMode(mode);
         }
 
+
+    // PID controller validation methods
+    public boolean rotatableAtSetpoint(){
+        // Tolerance : in degrees
+        return rotatablePidf.onTarget(3);
+    }
+
+    public boolean extensibleAtSetpoint(){
+        // Tolerance : in (m)
+        return rotatablePidf.onTarget(0.08);
+    }
     
     // Getters
-    public double getRotatableEncoderPpr(){
+    private double getRotatableEncoderPpr(){
         return rotatableEncoder.getCountsPerRevolution() / 4;
     }
 
-    public double getExtensibleEncoderPpr(){
+    private double getExtensibleEncoderPpr(){
         return extensibleEncoder.getCountsPerRevolution() / 4;
     }
 
@@ -190,18 +210,16 @@ public class Arm extends Subsystem{
     }
 
     private void calculateAllMeasurement(){
-        shoulderAngle();
-        extensibleDistance();
+        periodicIO.currentShoulderAngle = shoulderAngle();
+        periodicIO.currentExtensibleMeter = extensibleDistance();
     }
 
     public double shoulderAngle(){
-        periodicIO.currentShoulderAngle = getRotatableEncoderPpr() * Constants.ArmConstants.K_ARMTICK2DEGREE;
-        return periodicIO.currentShoulderAngle;
+        return getRotatableEncoderPpr() * Constants.ArmConstants.K_ARMTICK2DEGREE;
     }
 
     public double extensibleDistance(){
-        periodicIO.currentExtensibleMeter = getExtensibleEncoderPpr() * Constants.ArmConstants.K_EXTENSIBLE_TICK2METER;
-        return periodicIO.currentExtensibleMeter;
+        return getExtensibleEncoderPpr() * Constants.ArmConstants.K_EXTENSIBLE_TICK2METER;
     }
 
     @Override
@@ -218,7 +236,6 @@ public class Arm extends Subsystem{
     @Override
     public void outputTelemetry() {
         // TODO Auto-generated method stub
-        
     }
     
 }
