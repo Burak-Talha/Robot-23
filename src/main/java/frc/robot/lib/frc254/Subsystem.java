@@ -1,5 +1,6 @@
 package frc.robot.lib.frc254;
 
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.lib.frc254.loops.ILooper;
 
 /**
@@ -12,7 +13,7 @@ import frc.robot.lib.frc254.loops.ILooper;
  * state; the robot code will try to match the two states with actions. Each Subsystem also is responsible for
  * instantializing all member components at the start of the match.
  */
-public abstract class Subsystem {
+public abstract class Subsystem extends SubsystemBase {
     public void writeToLog() {}
 
     // Optional design pattern for caching periodic reads to avoid hammering the HAL/CAN.
