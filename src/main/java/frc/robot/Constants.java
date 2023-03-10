@@ -4,11 +4,38 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 
 public class Constants {
 
+    public static class ModeConstants{
+        public static class Idle {
+            public static final double IDLE_MODE_SHOULDER_ANGLE = 0;
+            public static final double IDLE_MODE_TURRET_ANGLE = 0;
+            public static final double IDLE_MODE_EXTENSIBLE_LENGTH = 0;
+        }
+    }
+
+    public static class AutoConstants{
+        public static final double kRamseteB = 2;
+        public static final double kRamseteZeta = 0.7;
+
+        public static final double KP = 0;
+        public static final double KI = 0;
+        public static final double KD = 0;
+        public static final double KF = 0;
+        
+        public static final double KS_VOLTS = 0.22;
+        public static final double KV_VOLT_SECONDS_PER_METER = 1.98;
+        public static final double KA_VOLT_SECONDS_SQUARED_PER_METER = 0.2;
+    }
+
     public static class DriveConstants{
         public static final int MASTER_LEFT_ID = 0;
         public static final int SLAVE_LEFT_ID = 1;
         public static final int MASTER_RIGHT_ID = 2;
         public static final int SLAVE_RIGHT_ID = 3;
+
+        public static final double BALANCE_KP = 0;
+        public static final double BALANCE_KI = 0;
+        public static final double BALANCE_KD = 0;
+        public static final double BALANCE_KF = 0;
 
         public static final double WHEEL_DIAMETER_CM = 50.24;
         public static final double ENCODER_PPR = 1024;
@@ -50,13 +77,35 @@ public class Constants {
         public static final double K_EXTENSIBLE_TICK2METER = 0;
     }
 
+    public static class TurretConstants{
+        public static double TURRET_UP_LIMIT = 720;
+        public static double TURRET_DOWN_LIMIT = -720;
+
+        public static final int TURRET_MASTER_ID = 8;
+        public static final int TURRET_SLAVE_ID = 9;
+
+        public static final double TURRET_KP = 0;
+        public static final double TURRET_KI = 0;
+        public static final double TURRET_KD = 0;
+        public static final double TURRET_KF = 0;
+
+        public static final double K_TURRET_TICKS2DEGREE = 360 / 46;
+    }
+
     public static class IntakeConstants{
+        public static final int INTAKE_MASTER_ID = 7;
         public static final double INTAKE_RPM_RATE = 400 / 20;
         public static final double INTAKE_CONFIDANCE_DOWN_LIMIT = 0.5;
+
+        public static final double INTAKE_KP = 0;
+        public static final double INTAKE_KI = 0;
+        public static final double INTAKE_KD = 0;
+        public static final double INTAKE_KF = 0;
     }
 
     public static class VisionConstants{
         public static String CAM_NAME = "";
+        // Will be add transformations for camera position
     }
     
 }
