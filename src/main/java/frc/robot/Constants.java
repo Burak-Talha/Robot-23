@@ -1,5 +1,7 @@
 package frc.robot;
 
+import com.pathplanner.lib.PathConstraints;
+
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 
 public class Constants {
@@ -24,6 +26,8 @@ public class Constants {
         public static final double KS_VOLTS = 0.22;
         public static final double KV_VOLT_SECONDS_PER_METER = 1.98;
         public static final double KA_VOLT_SECONDS_SQUARED_PER_METER = 0.2;
+
+        public static final PathConstraints DEF_PATH_CONSTRAINTS = new PathConstraints(5, 3.75);
     }
 
     public static class DriveConstants{
@@ -32,6 +36,10 @@ public class Constants {
         public static final int MASTER_RIGHT_ID = 2;
         public static final int SLAVE_RIGHT_ID = 3;
 
+        public static final int LEFT_ENCODER_A = 0;
+        public static final int LEFT_ENCODER_B = 1;
+        public static final int RIGHT_ENCODER_A = 2;
+        public static final int RIGHT_ENCODER_B = 3;
         public static final double BALANCE_KP = 0;
         public static final double BALANCE_KI = 0;
         public static final double BALANCE_KD = 0;
@@ -50,36 +58,45 @@ public class Constants {
         // Shoulder
         public static final int MASTER_ROTATABLE_ID = 4;
         public static final int SLAVE_ROTATABLE_ID = 5;
-        public static final double SHOULDER_KP = 0;
-        public static final double SHOULDER_KI = 0;
-        public static final double SHOULDER_KD = 0;
-        public static final double SHOULDER_KF = 0;
         public static final double SHOULDER_UP_LIMIT = 0;
         public static final double SHOULDER_DOWN_LIMIT = 0;
         public static final double k_ARM_ANGLE_OFFSET = 30;
         public static final double SHOULDER_PPR = 48;
         public static final double BY_HAND_DEGREES_OFFSET = 0.001;
         public static final double ANGLE_OF_MOVEMENT = 240;
+        // PID
+            public static final double SHOULDER_KIZONE = 0;
+            public static final double SHOULDER_KP = 0;
+            public static final double SHOULDER_KI = 0;
+            public static final double SHOULDER_KD = 0;
+            public static final double SHOULDER_KF = 0;
+            public static final double SHOULDER_MIN_OUTPUT = 0;
+            public static final double SHOULDER_MAX_OUTPUT = 0;
+
         // Extensible
         public static final int MASTER_EXTENSION_ID = 6;
         public static final double MAX_ARM_LENGTH = 1.5;
         public static final double DEFAULT_ARM_LENGTH = 1.2;
-        public static final double EXTENSIBLE_KP = 0;
-        public static final double EXTENSIBLE_KI = 0;
-        public static final double EXTENSIBLE_KD = 0;
-        public static final double EXTENSIBLE_KF = 0;
+        public static final double ARM_DISTANCE_PER_REVOLUTION = 12.56;// 2.PI.r
         public static final double EXTENSIBLE_UP_LIMIT = 0;
         public static final double EXTENSIBLE_DOWN_LIMIT = 0;
-        public static final double RANGE_OF_MOVEMENT = 0.4;
+        public static final double RANGE_OF_MOVEMENT = 0.4; 
+            // PID
+            public static final double EXTENSIBLE_KIZONE = 0;
+            public static final double EXTENSIBLE_MIN_OUTPUT = 0; 
+            public static final double EXTENSIBLE_MAX_OUTPUT = 0;
+            public static final double EXTENSIBLE_KP = 0;
+            public static final double EXTENSIBLE_KI = 0;
+            public static final double EXTENSIBLE_KD = 0;
+            public static final double EXTENSIBLE_KF = 0;
         // Calculations
-        public static final double K_ARMTICK2DEGREE = 360 / SHOULDER_PPR;
+        public static final double K_ARM_POSITION2DEGREE = 360;
         public static final double K_ARM_HEIGHT_M = 0.40;
         public static final double K_EXTENSIBLE_TICK2METER = 0;
     }
 
     public static class TurretConstants{
-        public static double TURRET_UP_LIMIT = 720;
-        public static double TURRET_DOWN_LIMIT = -720;
+        public static final double TURRET_LIMIT = 370;
 
         public static final int TURRET_MASTER_ID = 8;
         public static final int TURRET_SLAVE_ID = 9;
@@ -88,8 +105,11 @@ public class Constants {
         public static final double TURRET_KI = 0;
         public static final double TURRET_KD = 0;
         public static final double TURRET_KF = 0;
+        public static final double TURRET_KIZONE = 0;
+        public static final double TURRET_MIN_OUTPUT = 0;
+        public static final double TURRET_MAX_OUTPUT = 0;
 
-        public static final double K_TURRET_TICKS2DEGREE = 360 / 46;
+        public static final double K_TURRET_TICKS2DEGREE = 360;
     }
 
     public static class IntakeConstants{
