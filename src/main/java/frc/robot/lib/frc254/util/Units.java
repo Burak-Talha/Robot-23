@@ -35,4 +35,8 @@ public class Units {
     public static double radians_to_degrees(double radians) {
         return Math.toDegrees(radians);
     }
+
+    public static double meter_to_centimeter(double meter) {
+        return meter * 100;
+    }
 }

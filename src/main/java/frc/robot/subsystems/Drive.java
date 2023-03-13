@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -43,14 +44,14 @@ public class Drive extends Subsystem{
 
     Drive(){
         // Initialization
-        leftMaster = new CANSparkMax(0, MotorType.kBrushless);
-        leftSlave = new CANSparkMax(1, MotorType.kBrushless);
-        rightMaster = new CANSparkMax(2, MotorType.kBrushless);
-        rightSlave = new CANSparkMax(3, MotorType.kBrushless);
+        leftMaster = new CANSparkMax(Constants.DriveConstants.MASTER_LEFT_ID, MotorType.kBrushless);
+        leftSlave = new CANSparkMax(Constants.DriveConstants.SLAVE_LEFT_ID, MotorType.kBrushless);
+        rightMaster = new CANSparkMax(Constants.DriveConstants.MASTER_RIGHT_ID, MotorType.kBrushless);
+        rightSlave = new CANSparkMax(Constants.DriveConstants.SLAVE_RIGHT_ID, MotorType.kBrushless);
 
         navx = new AHRS(Port.kMXP);
-        rightEncoder = new Encoder(0, 1);
-        leftEncoder = new Encoder(2, 3);
+        rightEncoder = new Encoder(Constants.DriveConstants.RIGHT_ENCODER_A, Constants.DriveConstants.RIGHT_ENCODER_B);
+        leftEncoder = new Encoder(Constants.DriveConstants.LEFT_ENCODER_A, Constants.DriveConstants.LEFT_ENCODER_B);
 
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
 
