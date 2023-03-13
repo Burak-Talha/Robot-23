@@ -1,8 +1,9 @@
 package frc.robot.auto;
 
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.commands.PPRamseteCommand;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -30,4 +31,13 @@ public class AutoUtil {
                 Drive.getInstance()
             ));
     }
+
+    public static PathPlannerTrajectory createTrajectory(String pathName, PathConstraints constraints) {
+        return PathPlanner.loadPath(pathName, constraints);
+    }
+
+    public static PathPlannerTrajectory createTrajectory(String pathName) {
+        return PathPlanner.loadPath(pathName, Constants.AutoConstants.DEF_PATH_CONSTRAINTS);
+    }
+
 }
