@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -18,7 +20,7 @@ public class Turret extends Subsystem {
     private CANSparkMax slaveTurretMotor;
 
     private RelativeEncoder turretEncoder;
-    private SynchronousPIDF turretPidf;
+    private SparkMaxPIDController turretController;
 
     private ProcessingType currentProcessingType = ProcessingType.AUTO_CLOSED_LOOP;
 
@@ -28,15 +30,20 @@ public class Turret extends Subsystem {
         MANUAL
     }
 
-
-    
     Turret(){
         masterTurretMotor = new CANSparkMax(Constants.TurretConstants.TURRET_MASTER_ID, MotorType.kBrushless);
         slaveTurretMotor = new CANSparkMax(Constants.TurretConstants.TURRET_SLAVE_ID, MotorType.kBrushless);
         slaveTurretMotor.follow(masterTurretMotor);
 
         turretEncoder = masterTurretMotor.getEncoder();
-        turretPidf = new SynchronousPIDF(Constants.TurretConstants.TURRET_KP, Constants.TurretConstants.TURRET_KI, Constants.TurretConstants.TURRET_KD, Constants.TurretConstants.TURRET_KF);
+
+        turretController = masterTurretMotor.getPIDController();
+        turretController.setP(Constants.TurretConstants.TURRET_KP);
+        turretController.setI(Constants.TurretConstants.TURRET_KI);
+        turretController.setD(Constants.TurretConstants.TURRET_KD);
+        turretController.setFF(Constants.TurretConstants.TURRET_KF);
+        turretController.setOutputRange(Constants.TurretConstants.TURRET_MIN_OUTPUT, Constants.TurretConstants.TURRET_MAX_OUTPUT);
+        turretController.setIZone(Constants.TurretConstants.TURRET_KIZONE);
     }
 
     public static Turret turret = null;
@@ -52,6 +59,7 @@ public class Turret extends Subsystem {
     public static class PeriodicIO{
         public double turretAngle;
         public double turretVelocity;
+        public double degreeSetpoint;
         public double turretDemand;
         public IdleMode neutralMode;
     }
@@ -62,7 +70,7 @@ public class Turret extends Subsystem {
         calculateAllMeasurement();
 
         if(!isEncoderFaultExist() && currentProcessingType == ProcessingType.AUTO_CLOSED_LOOP || currentProcessingType == ProcessingType.BY_HAND){
-            periodicIO.turretDemand = turretPidf.calculate(periodicIO.turretAngle, periodicIO.turretDemand);
+            calculateClosedLoopDemands();
         }
     }
 
@@ -79,21 +87,22 @@ public class Turret extends Subsystem {
     }
 
     public void calculateClosedLoopDemands(){
-        periodicIO.turretDemand = turretPidf.calculate(periodicIO.turretAngle, periodicIO.turretDemand);
+        double degreeSetpoint = periodicIO.degreeSetpoint / 360;
+        turretController.setReference(degreeSetpoint, ControlType.kPosition);
     }
 
     public void setSetpointAutoClosedLoop(double degreeSetpoint){
-        degreeSetpoint = turretSetpointValid(degreeSetpoint);
-        turretPidf.setSetpoint(degreeSetpoint);
+        degreeSetpoint = configureSetpointValue(degreeSetpoint);
+        periodicIO.degreeSetpoint = degreeSetpoint;
     }
     
     // For manual control
-    public void controlTurret(double turretInput){
+    public void controlTurret(double yAxis, double xAxis){
         if(currentProcessingType == ProcessingType.BY_HAND){
-            setSetpointByHand(turretInput);
+            setSetpointByHand(Math.atan2(yAxis, xAxis));
         }
         else if(currentProcessingType == ProcessingType.MANUAL){
-            setManual(turretInput);
+            setManual(yAxis);
         }
     }
 
@@ -106,13 +115,27 @@ public class Turret extends Subsystem {
     }
 
     // Turret Validations for mechanical limits
-    public double turretSetpointValid(double degreeSetpoint){
-        return 0;
+    public double configureSetpointValue(double degreeSetpoint){
+        // We need to check if the setpoint is in the mechanical limits
+        double alternativeDegreeSetpoint = degreeSetpoint + 360;
+        double alternativeDistance = Math.abs(alternativeDegreeSetpoint - periodicIO.turretAngle);
+        double normalDistance = Math.abs(degreeSetpoint - periodicIO.turretAngle);
+        // True -> degreeSetpoint | False -> alternativeDegreeSetpoint
+        boolean x = normalDistance < alternativeDistance;
+        double finalSetpoint = x ? degreeSetpoint : alternativeDegreeSetpoint;
+
+        if(finalSetpoint > Constants.TurretConstants.TURRET_LIMIT){
+            if(x==true){
+                return alternativeDegreeSetpoint;
+            }
+        }
+
+        return finalSetpoint;
     }
 
     // Turret PIDF
     public boolean turretAngleAtSetpoint(){
-        return turretPidf.onTarget(3);
+        return false;
     }
 
     public boolean isEncoderFaultExist(){
@@ -121,8 +144,8 @@ public class Turret extends Subsystem {
 
     // Information data about the turret
     public void calculateAllMeasurement(){
-        periodicIO.turretAngle = getTurretAngle();
-        periodicIO.turretVelocity = getTurretVelocity();
+        periodicIO.turretAngle = Math.abs(getTurretAngle());
+        periodicIO.turretVelocity = Math.abs(getTurretVelocity());
     }
 
     public double getTurretVelocity(){

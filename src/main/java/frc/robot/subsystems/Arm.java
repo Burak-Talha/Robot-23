@@ -2,15 +2,15 @@ package frc.robot.subsystems;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.lib.frc254.Subsystem;
-import frc.robot.lib.frc254.util.SynchronousPIDF;
+import frc.robot.lib.frc254.util.Units;
 
 public class Arm extends Subsystem{
 
@@ -21,8 +21,8 @@ public class Arm extends Subsystem{
     private RelativeEncoder extensibleEncoder;
     private RelativeEncoder rotatableEncoder;
 
-    private SynchronousPIDF extensiblePidf;
-    private SynchronousPIDF rotatablePidf;
+    private SparkMaxPIDController extensibleController;
+    private SparkMaxPIDController rotatableController;
 
     public enum ProcessingType{
         AUTO_CLOSED_LOOP,
@@ -55,8 +55,24 @@ public class Arm extends Subsystem{
         extensibleEncoder = extensibleMotor.getEncoder();
         rotatableEncoder = rotatableMaster.getEncoder();
 
-        extensiblePidf = new SynchronousPIDF(Constants.ArmConstants.EXTENSIBLE_KP, Constants.ArmConstants.EXTENSIBLE_KI, Constants.ArmConstants.EXTENSIBLE_KD, Constants.ArmConstants.EXTENSIBLE_KF);
-        rotatablePidf = new SynchronousPIDF(Constants.ArmConstants.SHOULDER_KP, Constants.ArmConstants.SHOULDER_KI, Constants.ArmConstants.SHOULDER_KD, Constants.ArmConstants.SHOULDER_KF);
+        // Configuring the PID Controllers
+        extensibleController = extensibleMotor.getPIDController();
+        rotatableController = rotatableMaster.getPIDController();
+
+        extensibleController.setP(Constants.ArmConstants.EXTENSIBLE_KP);
+        extensibleController.setI(Constants.ArmConstants.EXTENSIBLE_KI);
+        extensibleController.setD(Constants.ArmConstants.EXTENSIBLE_KD);
+        extensibleController.setIZone(Constants.ArmConstants.EXTENSIBLE_KIZONE);
+        extensibleController.setFF(Constants.ArmConstants.EXTENSIBLE_KF);
+        extensibleController.setOutputRange(Constants.ArmConstants.EXTENSIBLE_MIN_OUTPUT, Constants.ArmConstants.EXTENSIBLE_MAX_OUTPUT);
+
+        rotatableController.setP(Constants.ArmConstants.SHOULDER_KP);
+        rotatableController.setI(Constants.ArmConstants.SHOULDER_KI);
+        rotatableController.setD(Constants.ArmConstants.SHOULDER_KD);
+        rotatableController.setIZone(Constants.ArmConstants.SHOULDER_KIZONE);
+        rotatableController.setFF(Constants.ArmConstants.SHOULDER_KF);
+        rotatableController.setOutputRange(Constants.ArmConstants.SHOULDER_MIN_OUTPUT, Constants.ArmConstants.SHOULDER_MAX_OUTPUT);
+
         rotatableSlave.follow(rotatableMaster);
     }
 
@@ -65,6 +81,8 @@ public class Arm extends Subsystem{
         double rotatableDemand;
         double currentShoulderAngle;
         double currentExtensibleMeter;
+        double shoulderAngleSetpoint;
+        double extensibleMeterSetpoint;
         IdleMode neutralMode;
     }
 
@@ -95,8 +113,8 @@ public class Arm extends Subsystem{
         }
 
         private void calculateClosedLoopDemands(){
-            periodicIO.rotatableDemand = rotatablePidf.calculate(periodicIO.currentShoulderAngle, Timer.getFPGATimestamp());
-            periodicIO.extensibleDemand = extensiblePidf.calculate(periodicIO.currentExtensibleMeter, Timer.getFPGATimestamp());
+            rotatableController.setReference(periodicIO.shoulderAngleSetpoint, ControlType.kPosition);
+            extensibleController.setReference(periodicIO.extensibleMeterSetpoint, ControlType.kPosition);
         }
 
         public void controlArm(double rotatable, double extensible){
@@ -122,9 +140,8 @@ public class Arm extends Subsystem{
         public void setSetpointAutoClosedLoop(double shoulderAngleSetpoint, double extensibleMeterSetpoint){
             shoulderAngleSetpoint = validatePIDSetpoints(ValidationType.ROTATABLE, shoulderAngleSetpoint);
             extensibleMeterSetpoint = validatePIDSetpoints(ValidationType.EXTENSIBLE, extensibleMeterSetpoint);
-
-            rotatablePidf.setSetpoint(shoulderAngleSetpoint);
-            extensiblePidf.setSetpoint(extensibleMeterSetpoint);
+            periodicIO.shoulderAngleSetpoint = shoulderAngleSetpoint / 360;
+            periodicIO.extensibleMeterSetpoint = Units.meter_to_centimeter(extensibleMeterSetpoint) / Constants.ArmConstants.ARM_DISTANCE_PER_REVOLUTION;
         }
 
         // Validation Of PID Setpoints for mechanical limits
@@ -188,23 +205,15 @@ public class Arm extends Subsystem{
     // PID controller validation methods
     public boolean rotatableAtSetpoint(){
         // Tolerance : in degrees
-        return rotatablePidf.onTarget(3);
+        return false;
     }
 
     public boolean extensibleAtSetpoint(){
         // Tolerance : in (m)
-        return rotatablePidf.onTarget(0.08);
+        return false;
     }
     
     // Getters
-    private double getRotatableEncoderPpr(){
-        return rotatableEncoder.getCountsPerRevolution() / 4;
-    }
-
-    private double getExtensibleEncoderPpr(){
-        return extensibleEncoder.getCountsPerRevolution() / 4;
-    }
-
     public boolean isEncoderFaultExist(){
         return rotatableMaster.getFault(FaultID.kSensorFault) || extensibleMotor.getFault(FaultID.kSensorFault);
     }
@@ -215,11 +224,11 @@ public class Arm extends Subsystem{
     }
 
     public double shoulderAngle(){
-        return getRotatableEncoderPpr() * Constants.ArmConstants.K_ARMTICK2DEGREE;
+        return rotatableEncoder.getPosition() * Constants.ArmConstants.K_ARM_POSITION2DEGREE;
     }
 
     public double extensibleDistance(){
-        return getExtensibleEncoderPpr() * Constants.ArmConstants.K_EXTENSIBLE_TICK2METER;
+        return extensibleEncoder.getPosition() * Constants.ArmConstants.K_EXTENSIBLE_TICK2METER;
     }
 
     @Override
