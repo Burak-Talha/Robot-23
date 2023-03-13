@@ -1,7 +1,6 @@
 package frc.robot.lib.frc254;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.lib.frc254.loops.ILooper;
 
 /**
  * The Subsystem abstract class, which serves as a basic framework for all robot subsystems. Each subsystem outputs
@@ -14,7 +13,6 @@ import frc.robot.lib.frc254.loops.ILooper;
  * instantializing all member components at the start of the match.
  */
 public abstract class Subsystem extends SubsystemBase {
-    public void writeToLog() {}
 
     // Optional design pattern for caching periodic reads to avoid hammering the HAL/CAN.
     public void readPeriodicInputs() {}
@@ -22,7 +20,11 @@ public abstract class Subsystem extends SubsystemBase {
     // Optional design pattern for caching periodic writes to avoid hammering the HAL/CAN.
     public void writePeriodicOutputs() {}
 
-    public void registerEnabledLoops(ILooper mEnabledLooper) {}
+    @Override
+    public void periodic() {
+        readPeriodicInputs();
+        writePeriodicOutputs();
+    }
 
     public void zeroSensors() {}
 
