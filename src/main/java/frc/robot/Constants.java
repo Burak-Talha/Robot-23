@@ -89,10 +89,11 @@ public class Constants {
         public static final int MASTER_EXTENSION_ID = 6;
         public static final double MAX_ARM_LENGTH = 1.5;
         public static final double DEFAULT_ARM_LENGTH = 1.2;
+        public static final double DEFAULT_HEIGHT = 0.5;
         public static final double ARM_DISTANCE_PER_REVOLUTION = 12.56;// 2.PI.r
         public static final double EXTENSIBLE_UP_LIMIT = 0;
         public static final double EXTENSIBLE_DOWN_LIMIT = 0;
-        public static final double RANGE_OF_MOVEMENT = 0.4; 
+        public static final double RANGE_OF_MOVEMENT = 0.4;
             // PID
             public static final double EXTENSIBLE_KIZONE = 0;
             public static final double EXTENSIBLE_MIN_OUTPUT = 0; 
