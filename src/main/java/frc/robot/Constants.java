@@ -45,10 +45,22 @@ public class Constants {
         public static final double BALANCE_KD = 0;
         public static final double BALANCE_KF = 0;
 
-        public static final double WHEEL_DIAMETER_CM = 50.24;
-        public static final double ENCODER_PPR = 1024;
-        public static final double REDUCTION_RATE = 0.25;
-        public static final double KDRIVETICK2METER = WHEEL_DIAMETER_CM / ENCODER_PPR * REDUCTION_RATE;
+        public static final double LEFT_KP = 0;
+        public static final double LEFT_KI = 0;
+        public static final double LEFT_KD = 0;
+        public static final double LEFT_KF = 0;
+
+        public static final double RIGHT_KP = 0;
+        public static final double RIGHT_KI = 0;
+        public static final double RIGHT_KD = 0;
+        public static final double RIGHT_KF = 0;
+
+        public static final double WHEEL_M_RADIUS = 0.0762;
+        public static final double WHEEL_PERIMETER = 2 * Math.PI * WHEEL_M_RADIUS;
+        public static final double REDUCTION_RATE = 10.72;
+        public static final double KDRIVETICK2METER = WHEEL_PERIMETER / REDUCTION_RATE;
+
+        public static final double MAX_WHEEL_RPM = 150;
 
         public static final DifferentialDriveKinematics DIFFERENTIAL_DRIVE_KINEMATICS = new DifferentialDriveKinematics(0.27);
     }
@@ -109,6 +121,10 @@ public class Constants {
         public static final double TURRET_MIN_OUTPUT = 0;
         public static final double TURRET_MAX_OUTPUT = 0;
 
+        public static final double TURRET_PERIMETER = 115;
+        public static final double PROPULSION_PERIMETER = 9;
+        public static final double TURRET_GEAR = TURRET_PERIMETER / PROPULSION_PERIMETER;
+
         public static final double K_TURRET_TICKS2DEGREE = 360;
     }
 
@@ -125,6 +141,8 @@ public class Constants {
 
     public static class VisionConstants{
         public static String CAM_NAME = "";
+        public static final int CAM_REFLECTOR_PIPELINE_INDEX = 0;
+        public static final int CAM_APRILTAG_PIPELINE_INDEX = 1;
         // Will be add transformations for camera position
     }
     
