@@ -1,18 +1,22 @@
 package frc.robot.subsystems;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import frc.robot.Constants;
 import frc.robot.lib.frc254.Subsystem;
 
 public class Vision extends Subsystem{
 
-    private PhotonCamera photonCamera;
+    public PhotonCamera photonCamera;
+    private PhotonTrackedTarget currentTarget;
+    private PhotonTrackedTarget lastTarget = new PhotonTrackedTarget();
 
     public static Vision vision = null;
 
     Vision(){
         photonCamera = new PhotonCamera(Constants.VisionConstants.CAM_NAME);
+        photonCamera.setPipelineIndex(Constants.VisionConstants.CAM_APRILTAG_PIPELINE_INDEX);
     }
 
     public static Vision getInstance(){
@@ -20,6 +24,20 @@ public class Vision extends Subsystem{
             vision = new Vision();
         }
         return vision;
+    }
+
+    public PhotonTrackedTarget bestAprilTarget(){
+        try{
+            currentTarget = photonCamera.getLatestResult().getBestTarget();
+        }catch(NullPointerException exception){
+            exception.printStackTrace();
+        }
+
+        if(currentTarget != null){
+            lastTarget = photonCamera.getLatestResult().getBestTarget();
+            return currentTarget;
+        }
+       return lastTarget;
     }
 
     @Override
