@@ -1,9 +1,15 @@
 package frc.robot;
 
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.lib.frc7682.ArmOdometry;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Turret;
@@ -13,6 +19,7 @@ public class RobotState{
 
     private ArmOdometry armOdometry;
     private DifferentialDrivePoseEstimator differentialDrivePoseEstimator;
+    private PhotonPoseEstimator photonPoseEstimator;
     private Arm arm;
     private Turret turret;
     private Vision vision;
@@ -41,6 +48,7 @@ public class RobotState{
                                             leftEncoderMeter,
                                             rightEncoderMeter,
                                             pose2d);
+        photonPoseEstimator = new PhotonPoseEstimator(FieldConstants.APRIL_TAG_FIELD_LAYOUT, PoseStrategy.AVERAGE_BEST_TARGETS, vision.photonCamera, new Transform3d(new Translation3d(0.3, 0, 0.20), new Rotation3d()));
     }
 
     public static class PeriodicIO{
@@ -52,12 +60,7 @@ public class RobotState{
 
     public void update(Rotation2d gyroAngle, double leftDistance, double rightDistance){
         differentialDrivePoseEstimator.update(gyroAngle, leftDistance, rightDistance);
-        armOdometry.update(turret.getTurretAngle(), arm.shoulderAngle(), arm.extensibleDistance());
-    }
-
-    public void addObservationForRobotPose(Pose2d visionMeasurement, double timestamp){
-        // This method is changeable with this algo -> increasing odometry accuracy with april tag vision(based on id of april tag(pose2d))
-        differentialDrivePoseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
+        armOdometry.update(turret.turretAngle(), arm.shoulderAngle(), arm.extensibleDistance());
     }
 
     // Arm odometry based-on chassis
@@ -71,10 +74,11 @@ public class RobotState{
     }
 
     // Only Chassis odometry
-    public Pose2d robotPositionPose2d(){
-        return differentialDrivePoseEstimator.getEstimatedPosition();
+    public Pose3d robotPositionPose2d(){
+        Pose3d photonPose = photonPoseEstimator.update().orElseThrow().estimatedPose;
+        Pose3d differentialEstimatorPose = new Pose3d(differentialDrivePoseEstimator.getEstimatedPosition());
+        return differentialEstimatorPose.interpolate(photonPose, 0.4);
     }
-
 
     /*  
      *      ODOMETRY
