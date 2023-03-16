@@ -10,10 +10,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.lib.frc254.Subsystem;
-import frc.robot.lib.frc254.util.SynchronousPIDF;
 
-
-// NOTE : Also should be setted velocity
 public class Turret extends Subsystem {
 
     private CANSparkMax masterTurretMotor;
@@ -87,7 +84,7 @@ public class Turret extends Subsystem {
     }
 
     public void calculateClosedLoopDemands(){
-        double degreeSetpoint = periodicIO.degreeSetpoint / 360;
+        double degreeSetpoint = Constants.TurretConstants.TURRET_GEAR * periodicIO.degreeSetpoint / 360;
         turretController.setReference(degreeSetpoint, ControlType.kPosition);
     }
 
@@ -99,7 +96,8 @@ public class Turret extends Subsystem {
     // For manual control
     public void controlTurret(double yAxis, double xAxis){
         if(currentProcessingType == ProcessingType.BY_HAND){
-            setSetpointByHand(Math.atan2(yAxis, xAxis));
+            // Get radian value from joystick and convert it to degree
+            setSetpointByHand(Math.toDegrees(Math.atan2(yAxis, xAxis)));
         }
         else if(currentProcessingType == ProcessingType.MANUAL){
             setManual(yAxis);
@@ -114,7 +112,7 @@ public class Turret extends Subsystem {
         setSetpointAutoClosedLoop(turretSetpoint);
     }
 
-    // Turret Validations for mechanical limits
+    // Turret Validations for mechanical limits (for getAngle method)
     public double configureSetpointValue(double degreeSetpoint){
         // We need to check if the setpoint is in the mechanical limits
         double alternativeDegreeSetpoint = degreeSetpoint + 360;
@@ -144,7 +142,7 @@ public class Turret extends Subsystem {
 
     // Information data about the turret
     public void calculateAllMeasurement(){
-        periodicIO.turretAngle = Math.abs(getTurretAngle());
+        periodicIO.turretAngle = turretAngle();
         periodicIO.turretVelocity = Math.abs(getTurretVelocity());
     }
 
@@ -152,14 +150,12 @@ public class Turret extends Subsystem {
         return turretEncoder.getVelocity() / 60;
     }
 
-    public double getTurretAngle(){
-        double turretAngle = getTurretPpr() * Constants.TurretConstants.K_TURRET_TICKS2DEGREE;
-        periodicIO.turretAngle = turretAngle;
-        return turretAngle;
+    public double turretAngle(){
+        return getTurretPosition() * Constants.TurretConstants.K_TURRET_TICKS2DEGREE;
     }
 
-    public double getTurretPpr(){
-        return turretEncoder.getCountsPerRevolution() / 4;
+    public double getTurretPosition(){
+        return turretEncoder.getPosition();
     }
 
     // Motor Controllers Modes        
