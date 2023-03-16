@@ -131,6 +131,7 @@ public class Arm extends Subsystem{
         }
 
         public void setSetpointByHandClosedLoop(double rotatableInput, double extensibleInput){
+            // This logic goes incrementally like this : current degree = 50, snapshotRequest = 10 , then the setpoint will be 60
             double rotatableDegreeSetpoint = Constants.ArmConstants.k_ARM_ANGLE_OFFSET + periodicIO.currentShoulderAngle + rotatableInput * Constants.ArmConstants.ANGLE_OF_MOVEMENT;
             double extensibleMeterSetpoint = Constants.ArmConstants.DEFAULT_ARM_LENGTH + periodicIO.currentExtensibleMeter + extensibleInput * Constants.ArmConstants.RANGE_OF_MOVEMENT;
 
