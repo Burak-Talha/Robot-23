@@ -7,7 +7,6 @@ import frc.robot.Constants;
 public class ArmOdometry {
 
     private Pose3d armPosition;
-    private double height;
 
     public static ArmOdometry armOdometry = null;
 
@@ -22,15 +21,11 @@ public class ArmOdometry {
         armPosition = new Pose3d();
     }
 
-    public void setExtraHeight(double newHeight){
-        height = newHeight;
-    }
-
     public void update(double turretAngle, double shoulderAngle, double armLength){
         double armX = (Math.cos(turretAngle) * (Math.cos(shoulderAngle) * armLength));
         double armY = (Math.sin(turretAngle) * (Math.cos(shoulderAngle) * armLength));
-        double armZ = (Constants.ArmConstants.DEFAULT_ARM_LENGTH + (Math.sin(shoulderAngle) * armLength) + height);
-        armPosition = new Pose3d(armX, armY, armZ, new Rotation3d(0, shoulderAngle, turretAngle));
+        double armZ = (Constants.ArmConstants.DEFAULT_ARM_LENGTH + (Math.sin(shoulderAngle) * armLength));
+        armPosition = new Pose3d(armX, armY, armZ, new Rotation3d());
     }
 
     public Pose3d getEstimatedPosition(){
