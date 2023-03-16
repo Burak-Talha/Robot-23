@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.RobotState;
 import frc.robot.lib.frc254.Subsystem;
 import frc.robot.lib.frc7682.Target;
@@ -68,7 +69,7 @@ public class SuperStructure extends Subsystem{
         double x = periodicIO.x;
         double z = periodicIO.z;
 
-        periodicIO.shoulderAngleSetpoint = Math.atan2(z, Math.abs(x));
+        periodicIO.shoulderAngleSetpoint = Math.toDegrees(Math.atan2(z, Math.abs(x)));
         periodicIO.extensibleSetpoint = Math.sqrt(Math.pow(z, 2) + Math.pow(x, 2));
     }
 
@@ -80,7 +81,7 @@ public class SuperStructure extends Subsystem{
     private void calculateDistanceToTarget(DesiredPosition desiredPosition, ObjectType objectType){
         Target currentTarget = targetFinder.bestTarget(objectType, desiredPosition);
         Pose3d currentArmPosition = robotState.armPositionPose3d();
-
+        
         periodicIO.x = currentTarget.target.getX() - currentArmPosition.getX();
         periodicIO.y = currentTarget.target.getY() - robotState.robotPositionPose2d().getY();
         periodicIO.z = currentTarget.target.getZ() - currentArmPosition.getZ();
@@ -91,6 +92,19 @@ public class SuperStructure extends Subsystem{
     }
 
     // General information methods
+
+    public void chooseMode(){
+        if(DriverStation.getAlliance().name() == "Red" && robotState.robotPositionPose2d().getX() > 8.5){
+            setTargetFinderTargetType(TargetType.POST);
+        } else if(DriverStation.getAlliance().name() == "Blue" && robotState.robotPositionPose2d().getX() < 8.5){
+            setTargetFinderTargetType(TargetType.POST);
+        }else if(DriverStation.getAlliance().name() == "Red" && robotState.robotPositionPose2d().getX() < 8.5){
+            setTargetFinderTargetType(TargetType.GET);
+        } else if(DriverStation.getAlliance().name() == "Blue" && robotState.robotPositionPose2d().getX() > 8.5){
+            setTargetFinderTargetType(TargetType.GET);
+        }
+    }
+
     public boolean isShoulderReady(){
         return arm.rotatableAtSetpoint();
     }
@@ -104,10 +118,7 @@ public class SuperStructure extends Subsystem{
     }
 
     public double getTargetDistanceToArm(){
-        if(isShoulderReady()){
-            return Math.sqrt(Math.pow(periodicIO.x, 2) + Math.pow(periodicIO.z, 2)) - arm.extensibleDistance();
-        }
-        return 0;
+        return Math.sqrt(Math.pow(periodicIO.x, 2) + Math.pow(periodicIO.z, 2)) - arm.extensibleDistance();
     }
 
     @Override
