@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -20,25 +22,33 @@ import frc.robot.lib.frc254.util.SynchronousPIDF;
 public class Drive extends Subsystem{
 
     // Controllers
-    private final CANSparkMax leftMaster;
-    private final CANSparkMax leftSlave;
-    private final CANSparkMax rightMaster;
-    private final CANSparkMax rightSlave;
+    private CANSparkMax leftMaster;
+    private CANSparkMax leftSlave;
+    private CANSparkMax rightMaster;
+    private CANSparkMax rightSlave;
 
     // Sensors
     private final AHRS navx;
-    private final Encoder leftEncoder;
-    private final Encoder rightEncoder;
+    private final RelativeEncoder leftEncoder = leftMaster.getEncoder();
+    private final RelativeEncoder rightEncoder = rightMaster.getEncoder();
 
     private final SynchronousPIDF balancePidf;
 
     // Drive
     private final DifferentialDrive differentialDrive;
 
-    private DriveMode currentDriveMode = DriveMode.SMOOTH;
+
+    // PID Controllers
+    private SparkMaxPIDController leftMasterPidController = leftMaster.getPIDController();
+    private SparkMaxPIDController rightMasterPidController = rightMaster.getPIDController();
+    private SparkMaxPIDController leftSlavePidController = leftSlave.getPIDController();
+    private SparkMaxPIDController rightSlavePidController = rightSlave.getPIDController();
+
+    private DriveMode currentDriveMode = DriveMode.MANUAL;
 
     public enum DriveMode{
-        SMOOTH,
+        MANUAL,
+        VELOCITY,
         BALANCE
     }
 
@@ -50,8 +60,6 @@ public class Drive extends Subsystem{
         rightSlave = new CANSparkMax(Constants.DriveConstants.SLAVE_RIGHT_ID, MotorType.kBrushless);
 
         navx = new AHRS(Port.kMXP);
-        rightEncoder = new Encoder(Constants.DriveConstants.RIGHT_ENCODER_A, Constants.DriveConstants.RIGHT_ENCODER_B);
-        leftEncoder = new Encoder(Constants.DriveConstants.LEFT_ENCODER_A, Constants.DriveConstants.LEFT_ENCODER_B);
 
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
 
@@ -63,8 +71,32 @@ public class Drive extends Subsystem{
         rightMaster.setInverted(true);
         rightSlave.setInverted(true);
         
+        // Balancing PID
         balancePidf = new SynchronousPIDF(Constants.DriveConstants.BALANCE_KP, Constants.DriveConstants.BALANCE_KI, Constants.DriveConstants.BALANCE_KD, Constants.DriveConstants.BALANCE_KF);
         balancePidf.setSetpoint(0.0);
+
+        // Left Side
+        leftMasterPidController.setP(Constants.DriveConstants.LEFT_KP);
+        leftMasterPidController.setI(Constants.DriveConstants.LEFT_KI);
+        leftMasterPidController.setD(Constants.DriveConstants.LEFT_KD);
+        leftMasterPidController.setFF(Constants.DriveConstants.LEFT_KF);
+
+        leftSlavePidController.setP(Constants.DriveConstants.LEFT_KP);
+        leftSlavePidController.setI(Constants.DriveConstants.LEFT_KI);
+        leftSlavePidController.setD(Constants.DriveConstants.LEFT_KD);
+        leftSlavePidController.setFF(Constants.DriveConstants.LEFT_KF);
+
+        // Right Side
+        rightMasterPidController.setP(Constants.DriveConstants.RIGHT_KP);
+        rightMasterPidController.setI(Constants.DriveConstants.RIGHT_KI);
+        rightMasterPidController.setD(Constants.DriveConstants.RIGHT_KD);
+        rightMasterPidController.setFF(Constants.DriveConstants.RIGHT_KF);
+
+        rightSlavePidController.setP(Constants.DriveConstants.RIGHT_KP);
+        rightSlavePidController.setI(Constants.DriveConstants.RIGHT_KI);
+        rightSlavePidController.setD(Constants.DriveConstants.RIGHT_KD);
+        rightSlavePidController.setFF(Constants.DriveConstants.RIGHT_KF);
+
     }
 
     private static Drive drive = null;
@@ -96,19 +128,22 @@ public class Drive extends Subsystem{
     @Override
     // Optional design pattern for caching periodic writes to avoid hammering the HAL/CAN.
     public void writePeriodicOutputs() {
-        setMotor(periodicIO.wheelSpeeds);
+        // Example Usage
+        leftMaster.set(periodicIO.wheelSpeeds.left);
+        rightMaster.set(periodicIO.wheelSpeeds.right);
     }
 
     public void cleverDrive(double speed, double rotation){
         switch(currentDriveMode){
-            case SMOOTH:
+            case MANUAL:
                 // Smooth Drive
                 arcadeDrive(speed, rotation);
-                break;
             case BALANCE:
                 // Balance Drive
                 balanceDrive();
-                break;
+            case VELOCITY:
+                // Velocity Drive
+                velocityDrive(speed, rotation);
         }
     }
 
@@ -119,21 +154,28 @@ public class Drive extends Subsystem{
     // Driver Methods
     private void arcadeDrive(double speed, double rotation){
        periodicIO.wheelSpeeds = DifferentialDrive.arcadeDriveIK(speed, rotation, false);
+       tankDrive(wheelSpeeds().leftMetersPerSecond, wheelSpeeds().rightMetersPerSecond);
     }
 
     private void balanceDrive(){
         double wheelSpeed = balancePidf.calculate(getPitch(), Timer.getFPGATimestamp());
-        periodicIO.wheelSpeeds = new WheelSpeeds(wheelSpeed, wheelSpeed);
+        tankDrive(wheelSpeed, wheelSpeed);
     }
 
-    public void tankDrive(double leftSpeed, double rightSpeed){
+    private void velocityDrive(double speed, double rotation){
+        WheelSpeeds wheelSpeeds = DifferentialDrive.arcadeDriveIK(speed, rotation, false);
+        // Limit in RPM units
+        wheelSpeeds.left *= Constants.DriveConstants.MAX_WHEEL_RPM;
+        wheelSpeeds.right *= Constants.DriveConstants.MAX_WHEEL_RPM;
+        leftMasterPidController.setReference(wheelSpeeds.left, ControlType.kVelocity);
+        leftSlavePidController.setReference(wheelSpeeds.left, ControlType.kVelocity);
+        rightMasterPidController.setReference(wheelSpeeds.right, ControlType.kVelocity);
+        rightSlavePidController.setReference(wheelSpeeds.right, ControlType.kVelocity);
+    }
+
+    private void tankDrive(double leftSpeed, double rightSpeed){
         periodicIO.wheelSpeeds.left = leftSpeed;
         periodicIO.wheelSpeeds.right = rightSpeed;
-    }
-
-    private void setMotor(WheelSpeeds wheelSpeeds){
-        leftMaster.set(wheelSpeeds.left);
-        rightMaster.set(wheelSpeeds.right);
     }
 
     // Motor Controllers Configurations
@@ -178,8 +220,8 @@ public class Drive extends Subsystem{
 
     // Sensors Configurations
     public void resetEncoders(){
-        leftEncoder.reset();
-        rightEncoder.reset();
+        leftMaster.getEncoder().setPosition(0);
+        rightMaster.getEncoder().setPosition(0);
     }
 
     public void resetGyro(){
@@ -197,12 +239,12 @@ public class Drive extends Subsystem{
     }
 
     public double getLeftEncoderMeter(){
-        periodicIO.leftMeterDistance = leftEncoder.get() * Constants.DriveConstants.KDRIVETICK2METER;
+        periodicIO.leftMeterDistance = leftEncoder.getPosition() * Constants.DriveConstants.KDRIVETICK2METER;
         return periodicIO.leftMeterDistance;
     }
 
     public double getRightEncoderMeter(){
-        periodicIO.rightMeterDistance = rightEncoder.get() * Constants.DriveConstants.KDRIVETICK2METER;
+        periodicIO.rightMeterDistance = rightEncoder.getPosition() * Constants.DriveConstants.KDRIVETICK2METER;
         return periodicIO.rightMeterDistance;
     }
 
@@ -230,7 +272,8 @@ public class Drive extends Subsystem{
     }
 
     public DifferentialDriveWheelSpeeds wheelSpeeds(){
-        return new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
+        return null;
+        //new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
     }
 
     @Override
