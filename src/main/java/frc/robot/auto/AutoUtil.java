@@ -22,12 +22,15 @@ public class AutoUtil {
                 traj,
                 RobotState.getInstance()::robotPositionPose2d,
                 new RamseteController(Constants.AutoConstants.kRamseteB, Constants.AutoConstants.kRamseteZeta),
-                new SimpleMotorFeedforward(Constants.AutoConstants.KA_VOLT_SECONDS_SQUARED_PER_METER, Constants.AutoConstants.KV_VOLT_SECONDS_PER_METER, Constants.AutoConstants.KS_VOLTS),
+                new SimpleMotorFeedforward(Constants.AutoConstants.KS_VOLTS,
+                    Constants.AutoConstants.KV_VOLT_SECONDS_PER_METER,
+                    Constants.AutoConstants.KA_VOLT_SECONDS_SQUARED_PER_METER),
                 Constants.DriveConstants.DIFFERENTIAL_DRIVE_KINEMATICS,
                 Drive.getInstance()::wheelSpeeds,
-                new PIDController(Constants.AutoConstants.KP, Constants.AutoConstants.KI, Constants.AutoConstants.KD),
-                new PIDController(Constants.AutoConstants.KP, Constants.AutoConstants.KI, Constants.AutoConstants.KD),
+                new PIDController(Constants.DriveConstants.LEFT_KP, Constants.DriveConstants.LEFT_KI, Constants.DriveConstants.LEFT_KD),
+                new PIDController(Constants.DriveConstants.RIGHT_KP, Constants.DriveConstants.RIGHT_KI, Constants.DriveConstants.RIGHT_KD),
                 Drive.getInstance()::tankDrive,
+                false,
                 Drive.getInstance()
             ));
     }
