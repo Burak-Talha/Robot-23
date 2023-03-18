@@ -74,10 +74,9 @@ public class RobotState{
     }
 
     // Only Chassis odometry
-    public Pose3d robotPositionPose2d(){
-        Pose3d photonPose = photonPoseEstimator.update().orElseThrow().estimatedPose;
-        Pose3d differentialEstimatorPose = new Pose3d(differentialDrivePoseEstimator.getEstimatedPosition());
-        return differentialEstimatorPose.interpolate(photonPose, 0.4);
+    public Pose2d robotPositionPose2d(){
+        Pose2d photonPose = photonPoseEstimator.update().orElseThrow().estimatedPose.toPose2d();
+        return photonPose.interpolate(differentialDrivePoseEstimator.getEstimatedPosition(), 0.4);
     }
 
     /*  
