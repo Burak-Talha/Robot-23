@@ -10,6 +10,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -28,14 +29,16 @@ public class Drive extends Subsystem{
     private CANSparkMax rightSlave;
 
     // Sensors
-    private final AHRS navx;
+    private AHRS navx;
+    private Encoder leftEncoder1 = new Encoder(0,1);
+    private Encoder rightEncoder1 = new Encoder(2,3);
     private final RelativeEncoder leftEncoder = leftMaster.getEncoder();
     private final RelativeEncoder rightEncoder = rightMaster.getEncoder();
 
-    private final SynchronousPIDF balancePidf;
+    private SynchronousPIDF balancePidf;
 
     // Drive
-    private final DifferentialDrive differentialDrive;
+    private DifferentialDrive differentialDrive;
 
 
     // PID Controllers
@@ -173,7 +176,7 @@ public class Drive extends Subsystem{
         rightSlavePidController.setReference(wheelSpeeds.right, ControlType.kVelocity);
     }
 
-    private void tankDrive(double leftSpeed, double rightSpeed){
+    public void tankDrive(double leftSpeed, double rightSpeed){
         periodicIO.wheelSpeeds.left = leftSpeed;
         periodicIO.wheelSpeeds.right = rightSpeed;
     }
@@ -272,8 +275,7 @@ public class Drive extends Subsystem{
     }
 
     public DifferentialDriveWheelSpeeds wheelSpeeds(){
-        return null;
-        //new DifferentialDriveWheelSpeeds(leftEncoder.getRate(), rightEncoder.getRate());
+        return new DifferentialDriveWheelSpeeds(leftEncoder1.getRate(), rightEncoder1.getRate());
     }
 
     @Override
