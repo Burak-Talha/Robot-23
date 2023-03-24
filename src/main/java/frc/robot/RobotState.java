@@ -48,7 +48,7 @@ public class RobotState{
                                             leftEncoderMeter,
                                             rightEncoderMeter,
                                             pose2d);
-        photonPoseEstimator = new PhotonPoseEstimator(FieldConstants.APRIL_TAG_FIELD_LAYOUT, PoseStrategy.AVERAGE_BEST_TARGETS, vision.photonCamera, new Transform3d(new Translation3d(0.3, 0, 0.20), new Rotation3d()));
+        photonPoseEstimator = new PhotonPoseEstimator(FieldConstants.APRIL_TAG_FIELD_LAYOUT, PoseStrategy.AVERAGE_BEST_TARGETS, vision.photonCamera, Constants.VisionConstants.CAMERA_TO_ROBOT);
     }
 
     public static class PeriodicIO{
@@ -78,23 +78,4 @@ public class RobotState{
         Pose2d photonPose = photonPoseEstimator.update().orElseThrow().estimatedPose.toPose2d();
         return photonPose.interpolate(differentialDrivePoseEstimator.getEstimatedPosition(), 0.4);
     }
-
-    /*  
-     *      ODOMETRY
-     * Differential Drive Pose Estimator
-     * Arm Pose to robot pose(do calculations for arm length and height)
-     *
-     *  
-     *      CONSTRAINTS
-     * robot arm shoulder velocity, acceleration
-     * differential constraints 
-     * 
-     * --------
-     *      Transformations
-     * robot pose -> turret pose
-     * turret pose -> robot end effector position
-     * 
-     * robot end effector position -> target | Transformations
-    */
-
 }

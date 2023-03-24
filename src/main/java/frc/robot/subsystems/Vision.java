@@ -16,7 +16,6 @@ public class Vision extends Subsystem{
 
     Vision(){
         photonCamera = new PhotonCamera(Constants.VisionConstants.CAM_NAME);
-        photonCamera.setPipelineIndex(Constants.VisionConstants.CAM_APRILTAG_PIPELINE_INDEX);
     }
 
     public static Vision getInstance(){

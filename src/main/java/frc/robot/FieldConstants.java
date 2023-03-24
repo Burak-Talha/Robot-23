@@ -188,7 +188,5 @@ public class FieldConstants {
                                                             new Target(aprilTags.get(6).pose.relativeTo(new Pose3d(0, 0.675, 0.238, new Rotation3d())), null, TargetType.GET, DesiredPosition.UP),
                                                             new Target(aprilTags.get(6).pose.relativeTo(new Pose3d(0, -0.675, 0.238, new Rotation3d())), null, TargetType.GET, DesiredPosition.UP)
                                                             );
-
     }
-
 }

@@ -2,6 +2,9 @@ package frc.robot;
 
 import com.pathplanner.lib.PathConstraints;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 
 public class Constants {
@@ -28,6 +31,14 @@ public class Constants {
         public static final double KA_VOLT_SECONDS_SQUARED_PER_METER = 0.2;
 
         public static final PathConstraints DEF_PATH_CONSTRAINTS = new PathConstraints(5, 3.75);
+    }
+
+    public static class JoystickConstants{
+        public static final int DRIVER_CONTROLLER_PORT = 0;
+        public static final int OPERATOR_CONTROLLER_PORT = 1;
+
+        public static final double DEADBAND = 0.2;
+        public static final double SLEW_RATE_LIMIT_GAIN = 0.5;
     }
 
     public static class DriveConstants{
@@ -144,6 +155,8 @@ public class Constants {
         public static String CAM_NAME = "";
         public static final int CAM_REFLECTOR_PIPELINE_INDEX = 0;
         public static final int CAM_APRILTAG_PIPELINE_INDEX = 1;
+        public static final Transform3d CAMERA_TO_ROBOT = new Transform3d(new Translation3d(0.3, 0, 0.20), new Rotation3d());
+
         // Will be add transformations for camera position
     }
     

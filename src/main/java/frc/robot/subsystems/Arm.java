@@ -93,7 +93,6 @@ public class Arm extends Subsystem{
         calculateAllMeasurement();
 
         // if sensors is ok and we want the  control manually we should control those situations
-
         if(!isEncoderFaultExist() && currentProcessingType == ProcessingType.AUTO_CLOSED_LOOP || currentProcessingType == ProcessingType.BY_HAND){
             calculateClosedLoopDemands();
         }

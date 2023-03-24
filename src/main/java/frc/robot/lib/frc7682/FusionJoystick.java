@@ -2,18 +2,13 @@ package frc.robot.lib.frc7682;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.Joystick;
+import frc.robot.lib.frc7682.TargetFinder.DesiredPosition;
 
 public class FusionJoystick extends Joystick{
 
     private SlewRateLimiter slewRateLimiter;
     private double deadband = 0.1;
-    private DesiredValue currentDesiredValue = DesiredValue.MID;
-
-    public enum DesiredValue{
-        UP,
-        MID,
-        DOWN
-    }
+    private DesiredPosition currentDesiredValue = DesiredPosition.MID;
     
 
     public FusionJoystick(int port) {
@@ -31,16 +26,16 @@ public class FusionJoystick extends Joystick{
         slewRateLimiter.reset(slewRateGain);
     }
     
-    public DesiredValue getDesiredPosition(){
+    public DesiredPosition getDesiredPosition(){
         double value = super.getThrottle();
         if(value > 0.66){
-            currentDesiredValue = DesiredValue.UP;
+            currentDesiredValue = DesiredPosition.UP;
         }
         else if(value > 0.33){
-            currentDesiredValue = DesiredValue.MID;
+            currentDesiredValue = DesiredPosition.MID;
         }
         else{
-            currentDesiredValue = DesiredValue.DOWN;
+            currentDesiredValue = DesiredPosition.DOWN;
         }
         return currentDesiredValue;
     }

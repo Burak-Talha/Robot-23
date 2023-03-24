@@ -12,6 +12,7 @@ public class RevColorSensorv3 extends Subsystem{
 
     private final ColorSensorV3 colorSensor = new ColorSensorV3(edu.wpi.first.wpilibj.I2C.Port.kOnboard);
 
+    // All of the colors that the color sensor can detect : TESTED
     private final Color purpleTarget = new Color(0.22, 0.33, 0.445);
     private final Color yellowTarget = new Color(0.40, 0.55, 0.057);
     private final Color unknownTarget = new Color(0.0, 0.0, 0.0);
