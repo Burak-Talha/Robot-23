@@ -8,6 +8,7 @@ public class FusionJoystick extends Joystick{
 
     private SlewRateLimiter slewRateLimiter;
     private double deadband = 0.1;
+    private double inputFactor = 1.0;
     private DesiredPosition currentDesiredValue = DesiredPosition.MID;
     
 
@@ -25,24 +26,14 @@ public class FusionJoystick extends Joystick{
     public void setSlewRate(double slewRateGain){
         slewRateLimiter.reset(slewRateGain);
     }
-    
-    public DesiredPosition getDesiredPosition(){
-        double value = super.getThrottle();
-        if(value > 0.66){
-            currentDesiredValue = DesiredPosition.UP;
-        }
-        else if(value > 0.33){
-            currentDesiredValue = DesiredPosition.MID;
-        }
-        else{
-            currentDesiredValue = DesiredPosition.DOWN;
-        }
-        return currentDesiredValue;
+
+    public void setInputFactor(double inputFactor){
+        this.inputFactor = inputFactor;
     }
 
     @Override
     public double getRawAxis(int axis) {
         double value = super.getRawAxis(axis);
-        return slewRateLimiter.calculate(value - deadband);
+        return slewRateLimiter.calculate(value - deadband)*inputFactor;
     }
 }
