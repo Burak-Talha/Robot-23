@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
+import com.revrobotics.CANSparkMax.FaultID;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -35,6 +36,9 @@ public class Drive extends Subsystem{
     private final RelativeEncoder rightEncoder = rightMaster.getEncoder();
 
     private SynchronousPIDF balancePidf;
+
+    private SynchronousPIDF rotationSynchronousPIDF;
+    private SynchronousPIDF speedSynchronousPIDF;
 
     // Drive
     private DifferentialDrive differentialDrive;
@@ -77,6 +81,11 @@ public class Drive extends Subsystem{
         balancePidf = new SynchronousPIDF(Constants.DriveConstants.BALANCE_KP, Constants.DriveConstants.BALANCE_KI, Constants.DriveConstants.BALANCE_KD, Constants.DriveConstants.BALANCE_KF);
         balancePidf.setSetpoint(0.0);
 
+        rotationSynchronousPIDF = new SynchronousPIDF(Constants.DriveConstants.LEFT_KP, Constants.DriveConstants.LEFT_KI, Constants.DriveConstants.LEFT_KD, Constants.DriveConstants.LEFT_KF);
+        speedSynchronousPIDF = new SynchronousPIDF(Constants.DriveConstants.RIGHT_KP, Constants.DriveConstants.RIGHT_KI, Constants.DriveConstants.RIGHT_KD, Constants.DriveConstants.RIGHT_KF);
+
+
+    // Tele-Op Drive pid
         // Left Side
         leftMasterPidController.setP(Constants.DriveConstants.LEFT_KP);
         leftMasterPidController.setI(Constants.DriveConstants.LEFT_KI);
@@ -98,7 +107,6 @@ public class Drive extends Subsystem{
         rightSlavePidController.setI(Constants.DriveConstants.RIGHT_KI);
         rightSlavePidController.setD(Constants.DriveConstants.RIGHT_KD);
         rightSlavePidController.setFF(Constants.DriveConstants.RIGHT_KF);
-
     }
 
     private static Drive drive = null;
@@ -133,6 +141,10 @@ public class Drive extends Subsystem{
         // Example Usage
         leftMaster.set(periodicIO.wheelSpeeds.left);
         rightMaster.set(periodicIO.wheelSpeeds.right);
+
+        if(leftMaster.getFault(FaultID.kSensorFault) || rightMaster.getFault(FaultID.kSensorFault)){
+            setDriveMode(DriveMode.MANUAL);
+        }
     }
 
     public void cleverDrive(double speed, double rotation){
@@ -175,8 +187,20 @@ public class Drive extends Subsystem{
         rightSlavePidController.setReference(wheelSpeeds.right, ControlType.kVelocity);
     }
 
-    public void autoDrive(){
+    // For Autonomous
+    public void straightAutoDrive(double degreeSetpoint, double meterSetpoint){
+        rotationSynchronousPIDF.setSetpoint(degreeSetpoint);
+        speedSynchronousPIDF.setSetpoint(meterSetpoint);
 
+        double rotation = rotationSynchronousPIDF.calculate(getYaw(), Timer.getFPGATimestamp());
+        double speed = speedSynchronousPIDF.calculate(periodicIO.leftMeterDistance, Timer.getFPGATimestamp());
+        differentialDrive.arcadeDrive(speed, rotation);
+    }
+
+    public void rotationAutoDrive(double degreeSetpoint){
+        rotationSynchronousPIDF.setSetpoint(degreeSetpoint);
+        double rotation = rotationSynchronousPIDF.calculate(getYaw(), Timer.getFPGATimestamp());
+        differentialDrive.arcadeDrive(0, rotation);
     }
 
     public void tankDrive(double leftSpeed, double rightSpeed){
