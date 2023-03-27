@@ -93,8 +93,11 @@ public class Arm extends Subsystem{
         calculateAllMeasurement();
 
         // if sensors is ok and we want the  control manually we should control those situations
-        if(!isEncoderFaultExist() && currentProcessingType == ProcessingType.AUTO_CLOSED_LOOP || currentProcessingType == ProcessingType.BY_HAND){
+        if(!(rotatableMaster.getFault(FaultID.kSensorFault) || extensibleMotor.getFault(FaultID.kSensorFault)) && currentProcessingType == ProcessingType.AUTO_CLOSED_LOOP || currentProcessingType == ProcessingType.BY_HAND){
             calculateClosedLoopDemands();
+        }
+        else{
+            setDesiredProcessingType(ProcessingType.MANUAL);
         }
     }
 
@@ -140,7 +143,7 @@ public class Arm extends Subsystem{
         public void setSetpointAutoClosedLoop(double shoulderAngleSetpoint, double extensibleMeterSetpoint){
             shoulderAngleSetpoint = validatePIDSetpoints(ValidationType.ROTATABLE, shoulderAngleSetpoint);
             extensibleMeterSetpoint = validatePIDSetpoints(ValidationType.EXTENSIBLE, extensibleMeterSetpoint);
-            periodicIO.shoulderAngleSetpoint = shoulderAngleSetpoint / 360;
+            periodicIO.shoulderAngleSetpoint = shoulderAngleSetpoint / 360; // Will be add gear ratio's
             periodicIO.extensibleMeterSetpoint = Units.meter_to_centimeter(extensibleMeterSetpoint) / Constants.ArmConstants.ARM_DISTANCE_PER_REVOLUTION;
         }
 

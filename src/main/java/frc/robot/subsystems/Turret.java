@@ -10,10 +10,11 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
 import frc.robot.lib.frc254.Subsystem;
+import frc.robot.subsystems.Arm.ProcessingType;
 
 public class Turret extends Subsystem {
 
-    private CANSparkMax masterTurretMotor;
+    private CANSparkMax turretMotor;
     private CANSparkMax slaveTurretMotor;
 
     private RelativeEncoder turretEncoder;
@@ -21,20 +22,11 @@ public class Turret extends Subsystem {
 
     private ProcessingType currentProcessingType = ProcessingType.AUTO_CLOSED_LOOP;
 
-    public enum ProcessingType{
-        AUTO_CLOSED_LOOP,
-        BY_HAND,
-        MANUAL
-    }
-
     Turret(){
-        masterTurretMotor = new CANSparkMax(Constants.TurretConstants.TURRET_MASTER_ID, MotorType.kBrushless);
-        slaveTurretMotor = new CANSparkMax(Constants.TurretConstants.TURRET_SLAVE_ID, MotorType.kBrushless);
-        slaveTurretMotor.follow(masterTurretMotor);
+        turretMotor = new CANSparkMax(Constants.TurretConstants.TURRET_MASTER_ID, MotorType.kBrushless);
+        turretEncoder = turretMotor.getEncoder();
 
-        turretEncoder = masterTurretMotor.getEncoder();
-
-        turretController = masterTurretMotor.getPIDController();
+        turretController = turretMotor.getPIDController();
         turretController.setP(Constants.TurretConstants.TURRET_KP);
         turretController.setI(Constants.TurretConstants.TURRET_KI);
         turretController.setD(Constants.TurretConstants.TURRET_KD);
@@ -63,11 +55,14 @@ public class Turret extends Subsystem {
 
     @Override
     public void writePeriodicOutputs() {
-        masterTurretMotor.set(periodicIO.turretDemand);
+        turretMotor.set(periodicIO.turretDemand);
         calculateAllMeasurement();
 
-        if(!isEncoderFaultExist() && currentProcessingType == ProcessingType.AUTO_CLOSED_LOOP || currentProcessingType == ProcessingType.BY_HAND){
+        if(!(turretMotor.getFault(FaultID.kSensorFault)) && currentProcessingType == ProcessingType.AUTO_CLOSED_LOOP || currentProcessingType == ProcessingType.BY_HAND){
             calculateClosedLoopDemands();
+        }
+        else{
+            setDesiredProcessingType(ProcessingType.MANUAL);
         }
     }
 
@@ -79,7 +74,7 @@ public class Turret extends Subsystem {
         SmartDashboard.putString("Turret Neutral Mode", periodicIO.neutralMode.toString());
     }
 
-    public void setProcessingType(ProcessingType processingType){
+    public void setDesiredProcessingType(ProcessingType processingType){
         currentProcessingType = processingType;
     }
 
@@ -137,7 +132,7 @@ public class Turret extends Subsystem {
     }
 
     public boolean isEncoderFaultExist(){
-        return masterTurretMotor.getFault(FaultID.kSensorFault);
+        return turretMotor.getFault(FaultID.kSensorFault);
     }
 
     // Information data about the turret
@@ -170,14 +165,14 @@ public class Turret extends Subsystem {
     }
     
     private void setNeutralMode(IdleMode mode){
-        masterTurretMotor.setIdleMode(mode);
+        turretMotor.setIdleMode(mode);
         slaveTurretMotor.setIdleMode(mode);
     }
 
     @Override
     public void stop() {
         // TODO Auto-generated method stub
-        masterTurretMotor.stopMotor();
+        turretMotor.stopMotor();
     }
 
     @Override
