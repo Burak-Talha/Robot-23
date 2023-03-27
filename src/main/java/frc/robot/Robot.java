@@ -9,6 +9,18 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.auto.AutoModeSelector;
+import frc.robot.controlpanel.DriverPanel;
+import frc.robot.controlpanel.IDriverPanel;
+import frc.robot.controlpanel.IOperatorPanel;
+import frc.robot.controlpanel.OperatorPanel;
+import frc.robot.lib.frc7682.FusionJoystick;
+import frc.robot.lib.frc7682.TargetFinder.TargetType;
+import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.SuperStructure;
+import frc.robot.subsystems.Turret;
+import frc.robot.subsystems.Drive.DriveMode;
+import frc.robot.subsystems.SuperStructure.SystemState;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -21,8 +33,13 @@ public class Robot extends TimedRobot {
   private AutoModeSelector autoModeSelector = AutoModeSelector.getInstance();
   private Command m_autonomousCommand;
 
-  private Joystick joystick = new Joystick(0);
+  IOperatorPanel operatorPanel = new OperatorPanel();
+  IDriverPanel driverPanel = new DriverPanel();
 
+  SuperStructure superStructure = SuperStructure.getInstance();
+  Drive drive = Drive.getInstance();
+  Arm arm = Arm.getInstance();
+  Turret turret = Turret.getInstance();
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -84,6 +101,22 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+
+    if(operatorPanel.POSTING()){  
+      superStructure.setTargetFinderDesiredPosition(operatorPanel.desiredTargetPosition());
+      superStructure.setSystemState(SystemState.POSTING);
+    } else if(operatorPanel.GETTING()){
+      superStructure.setSystemState(SystemState.GETTING);
+    } else if(operatorPanel.BALANCING()){
+      superStructure.setSystemState(SystemState.BALANCING);
+    } else if(operatorPanel.MANUAL()){
+      superStructure.setSystemState(SystemState.MANUAL);
+    }
+
+    // Manual PID Control
+    drive.cleverDrive(kDefaultPeriod, kDefaultPeriod);
+    arm.controlArm();
+    turret.controlTurret(operatorPanel.yAxis(), operatorPanel.xAxis());
   }
 
   @Override

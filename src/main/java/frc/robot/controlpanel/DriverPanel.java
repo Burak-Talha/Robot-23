@@ -8,7 +8,7 @@ public class DriverPanel implements IDriverPanel{
     private FusionJoystick driverStick;
     private boolean isReversed = false;
 
-    DriverPanel(FusionJoystick driverStick){
+    public DriverPanel(){
         this.driverStick = new FusionJoystick(Constants.JoystickConstants.DRIVER_CONTROLLER_PORT);
     }
 

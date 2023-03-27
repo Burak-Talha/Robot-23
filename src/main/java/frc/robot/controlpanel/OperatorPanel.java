@@ -8,7 +8,7 @@ public class OperatorPanel implements IOperatorPanel{
 
     private FusionJoystick operatorStick;
 
-    OperatorPanel(FusionJoystick operatorStick){
+    public OperatorPanel(){
         this.operatorStick = new FusionJoystick(Constants.JoystickConstants.OPERATOR_CONTROLLER_PORT);
     }
 
@@ -32,8 +32,13 @@ public class OperatorPanel implements IOperatorPanel{
     }
 
     @Override
-    public double turretDegrees() {
-        return operatorStick.getDirectionDegrees();
+    public double xAxis(){
+        return operatorStick.getX();
+    }
+
+    @Override
+    public double yAxis(){
+        return operatorStick.getY();
     }
 
     @Override

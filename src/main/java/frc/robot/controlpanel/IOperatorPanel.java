@@ -12,6 +12,7 @@ public interface IOperatorPanel {
     boolean MANUAL();
 
     double shoulderDegrees();
-    double turretDegrees();
+    double xAxis();
+    double yAxis();
 
 }
