@@ -4,5 +4,5 @@ public interface IDriverPanel {
 
     double speed();
     double rotation();
-    
+    void reverseDrive();
 }
