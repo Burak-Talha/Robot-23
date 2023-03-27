@@ -22,7 +22,8 @@ public class TargetFinder {
 
     public enum ObjectType{
         CONE,
-        CUBE
+        CUBE,
+        UNKNOWN
     }
 
     public enum DesiredPosition{
