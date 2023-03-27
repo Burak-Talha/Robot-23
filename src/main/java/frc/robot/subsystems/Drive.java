@@ -10,7 +10,6 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -41,7 +40,7 @@ public class Drive extends Subsystem{
     private DifferentialDrive differentialDrive;
 
 
-    // PID Controllers
+    // PID Controllers for velocity based drive
     private SparkMaxPIDController leftMasterPidController = leftMaster.getPIDController();
     private SparkMaxPIDController rightMasterPidController = rightMaster.getPIDController();
     private SparkMaxPIDController leftSlavePidController = leftSlave.getPIDController();
@@ -174,6 +173,10 @@ public class Drive extends Subsystem{
         leftSlavePidController.setReference(wheelSpeeds.left, ControlType.kVelocity);
         rightMasterPidController.setReference(wheelSpeeds.right, ControlType.kVelocity);
         rightSlavePidController.setReference(wheelSpeeds.right, ControlType.kVelocity);
+    }
+
+    public void autoDrive(){
+
     }
 
     public void tankDrive(double leftSpeed, double rightSpeed){
