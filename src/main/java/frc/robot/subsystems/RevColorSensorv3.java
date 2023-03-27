@@ -7,6 +7,7 @@ import com.revrobotics.ColorSensorV3;
 import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.Constants;
 import frc.robot.lib.frc254.Subsystem;
+import frc.robot.lib.frc7682.TargetFinder.ObjectType;
 
 public class RevColorSensorv3 extends Subsystem{
 
@@ -16,14 +17,8 @@ public class RevColorSensorv3 extends Subsystem{
     private final Color purpleTarget = new Color(0.22, 0.33, 0.445);
     private final Color yellowTarget = new Color(0.40, 0.55, 0.057);
     private final Color unknownTarget = new Color(0.0, 0.0, 0.0);
-    private ObjectColor currentColor = ObjectColor.UNKNOWN;
+    private ObjectType currentColor = ObjectType.UNKNOWN;
     private ColorMatch colorMatcher;
-
-    public enum ObjectColor{
-        PURPLE,
-        YELLOW,
-        UNKNOWN
-    }
 
     private static RevColorSensorv3 instance = new RevColorSensorv3();
 
@@ -41,15 +36,15 @@ public class RevColorSensorv3 extends Subsystem{
         return instance;
     }
     
-    public ObjectColor currentObjectColor(){
+    public ObjectType currentObjectType(){
         Color detectedColor = colorSensor.getColor();
         ColorMatchResult match = colorMatcher.matchClosestColor(detectedColor);
         if (match.color == purpleTarget && confidence() > Constants.IntakeConstants.INTAKE_CONFIDANCE_DOWN_LIMIT) {
-            currentColor = ObjectColor.PURPLE;
+            currentColor = ObjectType.CUBE;
         } else if (match.color == yellowTarget && confidence() > Constants.IntakeConstants.INTAKE_CONFIDANCE_DOWN_LIMIT) {
-            currentColor = ObjectColor.YELLOW;
+            currentColor = ObjectType.CONE;
         } else {
-            currentColor = ObjectColor.UNKNOWN;
+            currentColor = ObjectType.UNKNOWN;
         }
         return currentColor;
     }
