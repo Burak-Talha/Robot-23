@@ -6,16 +6,9 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.util.Units;
 
 public class Constants {
-
-    public static class ModeConstants{
-        public static class Idle {
-            public static final double IDLE_MODE_SHOULDER_ANGLE = 0;
-            public static final double IDLE_MODE_TURRET_ANGLE = 0;
-            public static final double IDLE_MODE_EXTENSIBLE_LENGTH = 0;
-        }
-    }
 
     public static class AutoConstants{
         public static final double kRamseteB = 2;
@@ -42,15 +35,11 @@ public class Constants {
     }
 
     public static class DriveConstants{
-        public static final int MASTER_LEFT_ID = 0;
-        public static final int SLAVE_LEFT_ID = 1;
-        public static final int MASTER_RIGHT_ID = 2;
-        public static final int SLAVE_RIGHT_ID = 3;
+        public static final int MASTER_LEFT_ID = 2;
+        public static final int SLAVE_LEFT_ID = 3;
+        public static final int MASTER_RIGHT_ID = 4;
+        public static final int SLAVE_RIGHT_ID = 5;
 
-        public static final int LEFT_ENCODER_A = 0;
-        public static final int LEFT_ENCODER_B = 1;
-        public static final int RIGHT_ENCODER_A = 2;
-        public static final int RIGHT_ENCODER_B = 3;
         public static final double BALANCE_KP = 0;
         public static final double BALANCE_KI = 0;
         public static final double BALANCE_KD = 0;
@@ -66,7 +55,7 @@ public class Constants {
         public static final double RIGHT_KD = 0;
         public static final double RIGHT_KF = 0;
 
-        public static final double WHEEL_M_RADIUS = 0.0762;
+        public static final double WHEEL_M_RADIUS = Units.inchesToMeters(3.2);
         public static final double WHEEL_PERIMETER = 2 * Math.PI * WHEEL_M_RADIUS;
         public static final double REDUCTION_RATE = 10.72;
         public static final double KDRIVETICK2METER = WHEEL_PERIMETER / REDUCTION_RATE;
@@ -80,7 +69,6 @@ public class Constants {
 
         // Shoulder
         public static final int MASTER_ROTATABLE_ID = 4;
-        public static final int SLAVE_ROTATABLE_ID = 5;
         public static final double SHOULDER_UP_LIMIT = 0;
         public static final double SHOULDER_DOWN_LIMIT = 0;
         public static final double k_ARM_ANGLE_OFFSET = 30;
@@ -107,8 +95,8 @@ public class Constants {
         public static final double RANGE_OF_MOVEMENT = 0.4;
             // PID
             public static final double EXTENSIBLE_KIZONE = 0;
-            public static final double EXTENSIBLE_MIN_OUTPUT = 0; 
-            public static final double EXTENSIBLE_MAX_OUTPUT = 0;
+            public static final double EXTENSIBLE_MIN_OUTPUT = -1; 
+            public static final double EXTENSIBLE_MAX_OUTPUT = 1;
             public static final double EXTENSIBLE_KP = 0;
             public static final double EXTENSIBLE_KI = 0;
             public static final double EXTENSIBLE_KD = 0;
@@ -120,7 +108,6 @@ public class Constants {
     }
 
     public static class TurretConstants{
-        public static final double TURRET_LIMIT = 370;
 
         public static final int TURRET_MASTER_ID = 8;
         public static final int TURRET_SLAVE_ID = 9;
@@ -152,12 +139,8 @@ public class Constants {
     }
 
     public static class VisionConstants{
-        public static String CAM_NAME = "";
-        public static final int CAM_REFLECTOR_PIPELINE_INDEX = 0;
-        public static final int CAM_APRILTAG_PIPELINE_INDEX = 1;
+        public static String CAM_NAME = "clementine_vision";
         public static final Transform3d CAMERA_TO_ROBOT = new Transform3d(new Translation3d(0.3, 0, 0.20), new Rotation3d());
-
-        // Will be add transformations for camera position
     }
     
 }
