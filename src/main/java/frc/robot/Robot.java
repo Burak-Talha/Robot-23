@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -13,13 +12,11 @@ import frc.robot.controlpanel.DriverPanel;
 import frc.robot.controlpanel.IDriverPanel;
 import frc.robot.controlpanel.IOperatorPanel;
 import frc.robot.controlpanel.OperatorPanel;
-import frc.robot.lib.frc7682.FusionJoystick;
-import frc.robot.lib.frc7682.TargetFinder.TargetType;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drive;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.Turret;
-import frc.robot.subsystems.Drive.DriveMode;
 import frc.robot.subsystems.SuperStructure.SystemState;
 
 /**
@@ -40,6 +37,7 @@ public class Robot extends TimedRobot {
   Drive drive = Drive.getInstance();
   Arm arm = Arm.getInstance();
   Turret turret = Turret.getInstance();
+  Intake intake = Intake.getInstance();
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -104,21 +102,36 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    if(operatorPanel.POSTING()){  
+    // Mode Chain
+    if(driverPanel.POSTING()){  
       superStructure.setTargetFinderDesiredPosition(operatorPanel.desiredTargetPosition());
       superStructure.setSystemState(SystemState.POSTING);
-    } else if(operatorPanel.GETTING()){
+    } else if(driverPanel.GETTING()){
       superStructure.setSystemState(SystemState.GETTING);
-    } else if(operatorPanel.BALANCING()){
+    } else if(driverPanel.BALANCING()){
       superStructure.setSystemState(SystemState.BALANCING);
-    } else if(operatorPanel.MANUAL()){
+    } else if(driverPanel.MANUAL()){
       superStructure.setSystemState(SystemState.MANUAL);
     }
 
+    // Gripper chain
+    if(operatorPanel.getIn()){
+      intake.manualIn();
+    }
+    else if(operatorPanel.getOut()){
+      intake.manualOut();
+    }
+    else{
+      intake.stop();
+    }
+
+    // Set Target Position
+    superStructure.setTargetFinderDesiredPosition(operatorPanel.desiredTargetPosition());
+
     // Manual PID Control
-    drive.cleverDrive(kDefaultPeriod, kDefaultPeriod);
-    arm.controlArm();
-    turret.controlTurret(operatorPanel.yAxis(), operatorPanel.xAxis());
+    drive.cleverDrive(driverPanel.speed(), driverPanel.rotation());
+    arm.controlArm(operatorPanel.shoulderDegrees(), operatorPanel.yAxis());
+    //turret.controlTurret(operatorPanel.yAxis(), operatorPanel.xAxis());
   }
 
   @Override

@@ -32,6 +32,31 @@ public class DriverPanel implements IDriverPanel{
     public void reverseDrive() {
         setReversed(!isReversed);
     }
+
+    @Override
+    public boolean GETTING() {
+        return driverStick.getRawButton(1);
+    }
+
+    @Override
+    public boolean POSTING() {
+        return driverStick.getRawButton(2);
+    }
+
+    @Override
+    public boolean TURTLING() {
+        return driverStick.getRawButton(3);
+    }
+
+    @Override
+    public boolean BALANCING() {
+        return driverStick.getRawButton(4);
+    }
+
+    @Override
+    public boolean MANUAL() {
+        return driverStick.getRawButton(5);
+    }
     
     private void setReversed(boolean isReversed){
         this.isReversed = isReversed;

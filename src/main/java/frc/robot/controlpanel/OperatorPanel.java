@@ -14,21 +14,18 @@ public class OperatorPanel implements IOperatorPanel{
 
     @Override
     public DesiredPosition desiredTargetPosition() {
-        double value = operatorStick.getThrottle();
-        if(value > 0.66){
+        if(operatorStick.getRawButton(4)){
             return DesiredPosition.UP;
         }
-        else if(value > 0.33){
+        else if(operatorStick.getRawButton(5)){
             return DesiredPosition.MID;
         }
-        else{
-            return DesiredPosition.DOWN;
-        }
+        return DesiredPosition.DOWN;
     }
 
     @Override
     public double shoulderDegrees() {
-        return operatorStick.getTwist();
+        return operatorStick.getThrottle();
     }
 
     @Override
@@ -42,28 +39,15 @@ public class OperatorPanel implements IOperatorPanel{
     }
 
     @Override
-    public boolean GETTING() {
+    public boolean getIn() {
         return operatorStick.getRawButton(1);
     }
 
     @Override
-    public boolean POSTING() {
+    public boolean getOut() {
         return operatorStick.getRawButton(2);
     }
 
-    @Override
-    public boolean TURTLING() {
-        return operatorStick.getRawButton(3);
-    }
-
-    @Override
-    public boolean BALANCING() {
-        return operatorStick.getRawButton(4);
-    }
-
-    @Override
-    public boolean MANUAL() {
-        return operatorStick.getRawButton(5);
-    }
+   
 
 }
