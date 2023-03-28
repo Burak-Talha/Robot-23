@@ -88,7 +88,7 @@ public class FieldConstants {
                                                             // 1st row
                                                             new Target(new Pose3d(new Translation3d(), new Rotation3d()), ObjectType.CONE, TargetType.POST, DesiredPosition.MID),
                                                             new Target(new Pose3d(new Translation3d(0.448, 4.991, 1.164), new Rotation3d()), ObjectType.CONE, TargetType.POST, DesiredPosition.UP),
-                                                            new Target(new Pose3d(new Translation3d(), new Rotation3d(0.882, 4.991, -0.860)), ObjectType.UNKNOWN, TargetType.POST, DesiredPosition.MID),
+                                                            new Target(new Pose3d(new Translation3d(0.882, 4.991, 0.860), new Rotation3d()), ObjectType.UNKNOWN, TargetType.POST, DesiredPosition.MID),
                                                             new Target(new Pose3d(new Translation3d(0.448, 4.991, 1.164), new Rotation3d()), ObjectType.UNKNOWN, TargetType.POST, DesiredPosition.UP),
                                                             // 3nd row
                                                             new Target(new Pose3d(new Translation3d(0.882, 3.873, 0.860), new Rotation3d()), ObjectType.CONE, TargetType.POST, DesiredPosition.MID),
