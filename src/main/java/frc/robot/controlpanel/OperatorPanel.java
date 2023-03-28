@@ -7,6 +7,7 @@ import frc.robot.lib.frc7682.TargetFinder.DesiredPosition;
 public class OperatorPanel implements IOperatorPanel{
 
     private FusionJoystick operatorStick;
+    private DesiredPosition currentDesiredPosition;
 
     public OperatorPanel(){
         this.operatorStick = new FusionJoystick(Constants.JoystickConstants.OPERATOR_CONTROLLER_PORT);
@@ -15,12 +16,12 @@ public class OperatorPanel implements IOperatorPanel{
     @Override
     public DesiredPosition desiredTargetPosition() {
         if(operatorStick.getRawButton(4)){
-            return DesiredPosition.UP;
+            currentDesiredPosition = DesiredPosition.UP;
         }
         else if(operatorStick.getRawButton(5)){
-            return DesiredPosition.MID;
+            currentDesiredPosition = DesiredPosition.MID;
         }
-        return DesiredPosition.DOWN;
+        return currentDesiredPosition;
     }
 
     @Override
