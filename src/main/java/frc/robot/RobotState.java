@@ -1,14 +1,16 @@
 package frc.robot;
 
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
-
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import frc.robot.lib.frc7682.ArmOdometry;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.Drive;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Vision;
 
@@ -16,15 +18,17 @@ public class RobotState{
 
     private ArmOdometry armOdometry;
     private DifferentialDrivePoseEstimator differentialDrivePoseEstimator;
-    private PhotonPoseEstimator photonPoseEstimator;
     private Arm arm;
     private Turret turret;
     private Vision vision;
+    private Drive drive;
 
     // Starter position with SmartDashboard
     //private Pose2d startPosition = 
 
     private static RobotState robotState = null;
+    SendableChooser<Pose2d> startPositionChooser;
+    Translation2d initialTranslation2d;
 
     public static RobotState getInstance(){
         if(robotState == null){
@@ -37,6 +41,7 @@ public class RobotState{
         arm = Arm.getInstance();
         turret = Turret.getInstance();
         vision = Vision.getInstance();
+        drive = Drive.getInstance();
         armOdometry = new ArmOdometry();
         differentialDrivePoseEstimator =
          new DifferentialDrivePoseEstimator(
@@ -45,7 +50,38 @@ public class RobotState{
                                             leftEncoderMeter,
                                             rightEncoderMeter,
                                             pose2d);
-        photonPoseEstimator = new PhotonPoseEstimator(FieldConstants.APRIL_TAG_FIELD_LAYOUT, PoseStrategy.AVERAGE_BEST_TARGETS, vision.photonCamera, Constants.VisionConstants.CAMERA_TO_ROBOT);
+
+        startPositionChooser = new SendableChooser<>();
+        startPositionChooser.setDefaultOption("Red mid : ", new Pose2d());
+        startPositionChooser.addOption("Red up : ", new Pose2d());
+        startPositionChooser.addOption("Red down : ", new Pose2d());
+
+        startPositionChooser.addOption("Blue up : ", new Pose2d());
+        startPositionChooser.addOption("Blue mid : ", new Pose2d());
+        startPositionChooser.addOption("Blue down : ", new Pose2d());
+
+    
+    drive.resetAll();
+    double coeffecient = 0;
+    if(DriverStation.getAlliance() == Alliance.Blue){
+      coeffecient+=180;
+    }
+
+    try{
+        if(vision.photonCamera.getLatestResult().getBestTarget() != null){
+        differentialDrivePoseEstimator.resetPosition(new Rotation2d(0), 0, 0,
+                                                    new Pose2d(
+                                                    vision.getEstimatedGlobalPose().get().estimatedPose.getTranslation().toTranslation2d(),
+                                                    new Rotation2d(Math.toRadians(drive.getRotation2d().getDegrees()+coeffecient))));
+        }
+        else{
+            differentialDrivePoseEstimator.resetPosition(new Rotation2d(0), 0, 0, startPositionChooser.getSelected());
+        }
+      }catch(Exception exception){
+        exception.printStackTrace();
+      }
+
+
     }
 
     public static class PeriodicIO{
@@ -72,7 +108,6 @@ public class RobotState{
 
     // Only Chassis odometry
     public Pose2d robotPositionPose2d(){
-        Pose2d photonPose = photonPoseEstimator.update().orElseThrow().estimatedPose.toPose2d();
-        return photonPose.interpolate(differentialDrivePoseEstimator.getEstimatedPosition(), 0.4);
+        return differentialDrivePoseEstimator.getEstimatedPosition();
     }
 }
