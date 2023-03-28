@@ -2,17 +2,17 @@ package frc.robot.lib.frc7682;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.FieldConstants;
 
 public class TargetFinder {
 
 
-    private Pose3d armPose;
+    private Pose2d robotPose;
     private Target lastTarget;
     private List<Target> targets;
-    private TargetType currnetTargetType = TargetType.NONE;
+    private TargetType currentTargetType = TargetType.NONE;
 
     public enum TargetType {
         GET,
@@ -35,7 +35,7 @@ public class TargetFinder {
     public static TargetFinder targetFinder = null;
 
     public TargetFinder(){
-        armPose = new Pose3d();
+        robotPose = new Pose2d();
     }
 
     public static TargetFinder getInstance(){
@@ -46,12 +46,12 @@ public class TargetFinder {
     }
 
     // Should work periodically
-    public void update(Pose3d estimatedArmPose){
-        armPose = estimatedArmPose;
+    public void update(Pose2d estimatedArmPose){
+        robotPose = estimatedArmPose;
     }
 
     public void changeTargetType(TargetType targetType){
-        currnetTargetType = targetType;
+        currentTargetType = targetType;
     }
 
     public Target bestTarget(ObjectType objectType, DesiredPosition desiredPosition){
@@ -66,17 +66,16 @@ public class TargetFinder {
         }
 
         // Find best target based on criteria and distance
-        List<Target> filteredTarget = targets.stream().filter(x -> x.objectType == objectType && x.isCompleted == false && x.targetType == currnetTargetType && x.desiredPosition == desiredPosition).collect(Collectors.toList());
+        List<Target> filteredTarget = targets.stream().filter(x -> x.objectType == objectType && x.isCompleted == false && x.targetType == currentTargetType && x.desiredPosition == desiredPosition).collect(Collectors.toList());
         // Get minimum distance target
         double minDistance = Double.MAX_VALUE;
         for(Target t : filteredTarget){
-            double distance = armPose.getTranslation().getDistance(t.target.getTranslation());
+            double distance = robotPose.getTranslation().getDistance(t.target.getTranslation().toTranslation2d());
             if(distance < minDistance){
                 target = t;
             }
         }
 
-        // Uyari mesaji : SmartDashboard
         if(target != null){
         lastTarget = target;
         }
