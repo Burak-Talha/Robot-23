@@ -28,8 +28,7 @@ public class TargetFinder {
 
     public enum DesiredPosition{
         UP,
-        MID,
-        DOWN
+        MID
     }
 
     public static TargetFinder targetFinder = null;
