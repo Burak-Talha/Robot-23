@@ -47,7 +47,7 @@ public class SuperStructure extends Subsystem{
     public void writePeriodicOutputs() {
         // TODO Auto-generated method stub
         robotState.update(drive.getRotation2d(), drive.getLeftEncoderMeter(), drive.getRightEncoderMeter());
-        targetFinder.update(robotState.armPositionPose3d());
+        targetFinder.update(robotState.robotPositionPose2d());
 
         calculateDistanceToTarget(desiredPosition, colorSensor.currentObjectType());
         calculateAllSystemSetpoint();
@@ -86,7 +86,8 @@ public class SuperStructure extends Subsystem{
                 break;
             case MANUAL:
                 arm.setDesiredProcessingType(ProcessingType.BY_HAND);
-                turret.setDesiredProcessingType(ProcessingType.BY_HAND);
+                turret.setSetpointAutoClosedLoop(0);
+                turret.openBrakeMode();
                 setTargetFinderTargetType(TargetType.NONE);
                 drive.setDriveMode(DriveMode.VELOCITY);
                 break;
@@ -146,7 +147,7 @@ public class SuperStructure extends Subsystem{
     }
 
     private void calculateTurretSetpointForTarget(){
-        periodicIO.turretAngleSetpoint = Math.toDegrees(Math.atan2(periodicIO.y, periodicIO.x)) - drive.getAngle();
+        periodicIO.turretAngleSetpoint = Math.toDegrees(Math.atan2(periodicIO.y, periodicIO.x)) - drive.getYaw();
     }
 
     // Base x, y, z calculator | Should work periodically
