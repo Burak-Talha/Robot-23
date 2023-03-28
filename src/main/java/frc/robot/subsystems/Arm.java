@@ -15,7 +15,6 @@ import frc.robot.lib.frc254.util.Units;
 public class Arm extends Subsystem{
 
     private final CANSparkMax rotatableMaster;
-    private final CANSparkMax rotatableSlave;
     private final CANSparkMax extensibleMotor;
 
     private RelativeEncoder extensibleEncoder;
@@ -49,7 +48,6 @@ public class Arm extends Subsystem{
 
     Arm(){
         rotatableMaster = new CANSparkMax(Constants.ArmConstants.MASTER_ROTATABLE_ID, MotorType.kBrushless);
-        rotatableSlave = new CANSparkMax(Constants.ArmConstants.SLAVE_ROTATABLE_ID, MotorType.kBrushless);
         extensibleMotor = new CANSparkMax(Constants.ArmConstants.MASTER_EXTENSION_ID, MotorType.kBrushless);
 
         extensibleEncoder = extensibleMotor.getEncoder();
@@ -72,8 +70,6 @@ public class Arm extends Subsystem{
         rotatableController.setIZone(Constants.ArmConstants.SHOULDER_KIZONE);
         rotatableController.setFF(Constants.ArmConstants.SHOULDER_KF);
         rotatableController.setOutputRange(Constants.ArmConstants.SHOULDER_MIN_OUTPUT, Constants.ArmConstants.SHOULDER_MAX_OUTPUT);
-
-        rotatableSlave.follow(rotatableMaster);
     }
 
     public static class PeriodicIO {
@@ -179,7 +175,6 @@ public class Arm extends Subsystem{
         public void restoreFactory(){
             extensibleMotor.restoreFactoryDefaults();
             rotatableMaster.restoreFactoryDefaults();
-            rotatableSlave.restoreFactoryDefaults();
         }
     
         private void stopSystem(){
@@ -200,7 +195,6 @@ public class Arm extends Subsystem{
     
         private void setNeutralMode(IdleMode mode){
             rotatableMaster.setIdleMode(mode);
-            rotatableSlave.setIdleMode(mode);
             extensibleMotor.setIdleMode(mode);
         }
 

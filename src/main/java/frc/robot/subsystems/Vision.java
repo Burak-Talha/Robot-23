@@ -27,11 +27,10 @@ package frc.robot.subsystems;
  import edu.wpi.first.apriltag.AprilTagFieldLayout;
  import edu.wpi.first.apriltag.AprilTagFields;
  import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.DriverStation;
- import java.io.IOException;
+import frc.robot.Constants;
+
+import java.io.IOException;
  import java.util.Optional;
 
 import org.photonvision.EstimatedRobotPose;
@@ -46,7 +45,7 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
  
      public Vision() {
          // Change the name of your camera here to whatever it is in the PhotonVision UI.
-         photonCamera = new PhotonCamera("clementine_vision");
+         photonCamera = new PhotonCamera(Constants.VisionConstants.CAM_NAME);
  
          try {
              // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
@@ -54,7 +53,7 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
              // Create pose estimator
              photonPoseEstimator =
                      new PhotonPoseEstimator(
-                             fieldLayout, PoseStrategy.LOWEST_AMBIGUITY, photonCamera, new Transform3d(new Translation3d(0.3, 0, 0), new Rotation3d()));
+                             fieldLayout, PoseStrategy.LOWEST_AMBIGUITY, photonCamera, Constants.VisionConstants.CAMERA_TO_ROBOT);
          } catch (IOException e) {
              // The AprilTagFieldLayout failed to load. We won't be able to estimate poses if we don't know
              // where the tags are.

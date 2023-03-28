@@ -84,7 +84,7 @@ public class Turret extends Subsystem {
     }
 
     public void setSetpointAutoClosedLoop(double degreeSetpoint){
-        degreeSetpoint = configureSetpointValue(degreeSetpoint);
+        //degreeSetpoint = configureSetpointValue(degreeSetpoint);
         periodicIO.degreeSetpoint = degreeSetpoint;
     }
     
@@ -108,7 +108,7 @@ public class Turret extends Subsystem {
     }
 
     // Turret Validations for mechanical limits (for getAngle method)
-    public double configureSetpointValue(double degreeSetpoint){
+    /*public double configureSetpointValue(double degreeSetpoint){
         // We need to check if the setpoint is in the mechanical limits
         double alternativeDegreeSetpoint = degreeSetpoint + 360;
         double alternativeDistance = Math.abs(alternativeDegreeSetpoint - periodicIO.turretAngle);
@@ -124,7 +124,7 @@ public class Turret extends Subsystem {
         }
 
         return finalSetpoint;
-    }
+    }*/
 
     // Turret PIDF
     public boolean turretAngleAtSetpoint(){
