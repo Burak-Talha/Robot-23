@@ -1,60 +1,88 @@
 package frc.robot.subsystems;
 
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 PhotonVision
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+ import edu.wpi.first.apriltag.AprilTagFieldLayout;
+ import edu.wpi.first.apriltag.AprilTagFields;
+ import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.DriverStation;
+ import java.io.IOException;
+ import java.util.Optional;
+
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.PhotonTrackedTarget;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+ 
+ public class Vision {
+     public PhotonCamera photonCamera;
+     private PhotonPoseEstimator photonPoseEstimator;
+     private Pose2d pose2d = new Pose2d();
+ 
+     public Vision() {
+         // Change the name of your camera here to whatever it is in the PhotonVision UI.
+         photonCamera = new PhotonCamera("clementine_vision");
+ 
+         try {
+             // Attempt to load the AprilTagFieldLayout that will tell us where the tags are on the field.
+             AprilTagFieldLayout fieldLayout = AprilTagFields.k2023ChargedUp.loadAprilTagLayoutField();
+             // Create pose estimator
+             photonPoseEstimator =
+                     new PhotonPoseEstimator(
+                             fieldLayout, PoseStrategy.LOWEST_AMBIGUITY, photonCamera, new Transform3d(new Translation3d(0.3, 0, 0), new Rotation3d()));
+         } catch (IOException e) {
+             // The AprilTagFieldLayout failed to load. We won't be able to estimate poses if we don't know
+             // where the tags are.
+             DriverStation.reportError("Failed to load AprilTagFieldLayout", e.getStackTrace());
+             photonPoseEstimator = null;
+         }
+     }
 
-import frc.robot.Constants;
-import frc.robot.lib.frc254.Subsystem;
+     public static Vision vision;
 
-public class Vision extends Subsystem{
-
-    public PhotonCamera photonCamera;
-    private PhotonTrackedTarget currentTarget;
-    private PhotonTrackedTarget lastTarget = new PhotonTrackedTarget();
-
-    public static Vision vision = null;
-
-    Vision(){
-        photonCamera = new PhotonCamera(Constants.VisionConstants.CAM_NAME);
-    }
-
-    public static Vision getInstance(){
-        if(vision == null){
-            vision = new Vision();
+        public static Vision getInstance() {
+            if (vision == null) {
+                vision = new Vision();
+            }
+            return vision;
         }
-        return vision;
+ 
+     /**
+      * @param estimatedRobotPose The current best guess at robot pose
+      * @return an EstimatedRobotPose with an estimated pose, the timestamp, and targets used to create
+      *     the estimate
+      */
+     public Optional<EstimatedRobotPose> getEstimatedGlobalPose() {
+         if (photonPoseEstimator == null) {
+             // The field layout failed to load, so we cannot estimate poses.
+             return Optional.empty();
+         }
+         photonPoseEstimator.setReferencePose(pose2d);
+         return photonPoseEstimator.update();
     }
-
-    public PhotonTrackedTarget bestAprilTarget(){
-        try{
-            currentTarget = photonCamera.getLatestResult().getBestTarget();
-        }catch(NullPointerException exception){
-            exception.printStackTrace();
-        }
-
-        if(currentTarget != null){
-            lastTarget = photonCamera.getLatestResult().getBestTarget();
-            return currentTarget;
-        }
-       return lastTarget;
-    }
-
-    @Override
-    public void stop() {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public boolean checkSystem() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public void outputTelemetry() {
-        // TODO Auto-generated method stub
-        
-    }
-    
 }
