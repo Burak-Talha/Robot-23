@@ -58,23 +58,29 @@ public class Constants {
         public static final double WHEEL_M_RADIUS = Units.inchesToMeters(3.2);
         public static final double WHEEL_PERIMETER = 2 * Math.PI * WHEEL_M_RADIUS;
         public static final double REDUCTION_RATE = 10.72;
-        public static final double KDRIVETICK2METER = WHEEL_PERIMETER / REDUCTION_RATE;
+        public static final double kPOSITION_2_METER = WHEEL_PERIMETER / REDUCTION_RATE;
 
         public static final double MAX_WHEEL_RPM = 150;
 
-        public static final DifferentialDriveKinematics DIFFERENTIAL_DRIVE_KINEMATICS = new DifferentialDriveKinematics(0.27);
+        public static final DifferentialDriveKinematics DIFFERENTIAL_DRIVE_KINEMATICS = new DifferentialDriveKinematics(0.23);
     }
 
     public static class ArmConstants{
 
         // Shoulder
         public static final int MASTER_ROTATABLE_ID = 4;
-        public static final double SHOULDER_UP_LIMIT = 0;
-        public static final double SHOULDER_DOWN_LIMIT = 0;
-        public static final double k_ARM_ANGLE_OFFSET = 30;
+        public static final double SHOULDER_UP_LIMIT = 90;
+        public static final double SHOULDER_DOWN_LIMIT = -30;
+        public static final double INITIAL_SHOULDER_DEGREES = -30;
         public static final double SHOULDER_PPR = 48;
         public static final double BY_HAND_DEGREES_OFFSET = 0.001;
-        public static final double ANGLE_OF_MOVEMENT = 240;
+        public static final double ANGLE_OF_MOVEMENT = 90;
+
+        public static final double REDUCTOR_RATIO = 48;
+        public static final double GEAR_RATIO = 0.75;
+        public static final double GENERAL_RATIO = REDUCTOR_RATIO * GEAR_RATIO;
+        public static final double kPOSITION_2_DEGREES = 360 / GENERAL_RATIO;
+        public static final double kDEGREES_2_POSITION = GENERAL_RATIO / 360;
         // PID
             public static final double SHOULDER_KIZONE = 0;
             public static final double SHOULDER_KP = 0;
@@ -89,9 +95,14 @@ public class Constants {
         public static final double MAX_ARM_LENGTH = 1.5;
         public static final double DEFAULT_ARM_LENGTH = 1.2;
         public static final double DEFAULT_HEIGHT = 0.5;
-        public static final double ARM_DISTANCE_PER_REVOLUTION = 12.56;// 2.PI.r
-        public static final double EXTENSIBLE_UP_LIMIT = 0;
-        public static final double EXTENSIBLE_DOWN_LIMIT = 0;
+
+        public static final double WINDER_PERIMETER_M = 0.1;
+        public static final double EXTENSIBLE_REDUCTOR_RATIO = 100;
+        public static final double WINDER_CIRCUMFERENCE_M = 2 * Math.PI * WINDER_PERIMETER_M;
+
+        public static final double METER_2_POSITION = EXTENSIBLE_REDUCTOR_RATIO / WINDER_CIRCUMFERENCE_M;
+        public static final double POSITION_2_METER = WINDER_CIRCUMFERENCE_M / EXTENSIBLE_REDUCTOR_RATIO;
+
         public static final double RANGE_OF_MOVEMENT = 0.4;
             // PID
             public static final double EXTENSIBLE_KIZONE = 0;
@@ -102,7 +113,6 @@ public class Constants {
             public static final double EXTENSIBLE_KD = 0;
             public static final double EXTENSIBLE_KF = 0;
         // Calculations
-        public static final double K_ARM_POSITION2DEGREE = 360;
         public static final double K_ARM_HEIGHT_M = 0.40;
         public static final double K_EXTENSIBLE_TICK2METER = 0;
     }
@@ -110,24 +120,24 @@ public class Constants {
     public static class TurretConstants{
 
         public static final int TURRET_MASTER_ID = 8;
-        public static final int TURRET_SLAVE_ID = 9;
 
         public static final double TURRET_KP = 0;
         public static final double TURRET_KI = 0;
         public static final double TURRET_KD = 0;
         public static final double TURRET_KF = 0;
         public static final double TURRET_KIZONE = 0;
-        public static final double TURRET_MIN_OUTPUT = 0;
-        public static final double TURRET_MAX_OUTPUT = 0;
+        public static final double TURRET_MIN_OUTPUT = -1;
+        public static final double TURRET_MAX_OUTPUT = 1;
 
         public static final double TURRET_PERIMETER = 115;
-        public static final double PROPULSION_PERIMETER = 9;
+        public static final double PROPULSION_PERIMETER = 9.58333;
         public static final double TURRET_GEAR = TURRET_PERIMETER / PROPULSION_PERIMETER;
 
-        public static final double K_TURRET_TICKS2DEGREE = 360;
+        public static final double K_TURRET_POSITION_2_DEGREES = 360 / TURRET_GEAR;
+        public static final double K_TURRET_DEGREES_TO_POSITION = TURRET_GEAR / 360;
     }
 
-    public static class IntakeConstants{
+    public static class GripperConstants{
         public static final int INTAKE_MASTER_ID = 7;
         public static final double INTAKE_RPM_RATE = 400 / 20;
         public static final double INTAKE_CONFIDANCE_DOWN_LIMIT = 0.5;
