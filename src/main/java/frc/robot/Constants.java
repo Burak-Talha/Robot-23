@@ -60,6 +60,9 @@ public class Constants {
         public static final double REDUCTION_RATE = 10.72;
         public static final double kPOSITION_2_METER = WHEEL_PERIMETER / REDUCTION_RATE;
 
+        public static final double POSITION_CONVERSION_FACTOR = ((1/REDUCTION_RATE) * (2*Math.PI*WHEEL_M_RADIUS));
+        public static final double VELOCITY_CONVERSION_FACTOR = (1/REDUCTION_RATE) * (2*Math.PI*WHEEL_M_RADIUS)*(1/60);
+
         public static final double MAX_WHEEL_RPM = 150;
 
         public static final DifferentialDriveKinematics DIFFERENTIAL_DRIVE_KINEMATICS = new DifferentialDriveKinematics(0.23);

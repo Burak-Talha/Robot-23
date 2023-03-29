@@ -65,6 +65,11 @@ public class Drive extends Subsystem{
         rightMaster = new CANSparkMax(Constants.DriveConstants.MASTER_RIGHT_ID, MotorType.kBrushless);
         rightSlave = new CANSparkMax(Constants.DriveConstants.SLAVE_RIGHT_ID, MotorType.kBrushless);
 
+        leftEncoder.setPositionConversionFactor(Constants.DriveConstants.POSITION_CONVERSION_FACTOR);
+        rightEncoder.setPositionConversionFactor(Constants.DriveConstants.POSITION_CONVERSION_FACTOR);
+        leftEncoder.setVelocityConversionFactor(Constants.DriveConstants.VELOCITY_CONVERSION_FACTOR);
+        rightEncoder.setVelocityConversionFactor(Constants.DriveConstants.VELOCITY_CONVERSION_FACTOR);
+
         navx = new AHRS(Port.kMXP);
 
         differentialDrive = new DifferentialDrive(leftMaster, rightMaster);
