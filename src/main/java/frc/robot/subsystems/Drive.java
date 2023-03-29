@@ -188,17 +188,21 @@ public class Drive extends Subsystem{
     }
 
     // For Autonomous
-    public void straightAutoDrive(double degreeSetpoint, double meterSetpoint){
-        rotationSynchronousPIDF.setSetpoint(degreeSetpoint);
-        speedSynchronousPIDF.setSetpoint(meterSetpoint);
 
+
+    // Should execute on command init
+    public void setAutonomousDriveSetpoints(double degreeSetpoint, double meterSetpoint){
+        rotationSynchronousPIDF.setSetpoint(degreeSetpoint+getYaw());
+        speedSynchronousPIDF.setSetpoint(meterSetpoint+periodicIO.leftMeterDistance);
+    }
+
+    public void straightAutoDrive(double degreeSetpoint, double meterSetpoint){
         double rotation = rotationSynchronousPIDF.calculate(getYaw(), Timer.getFPGATimestamp());
         double speed = speedSynchronousPIDF.calculate(periodicIO.leftMeterDistance, Timer.getFPGATimestamp());
         differentialDrive.arcadeDrive(speed, rotation);
     }
 
     public void rotationAutoDrive(double degreeSetpoint){
-        rotationSynchronousPIDF.setSetpoint(degreeSetpoint);
         double rotation = rotationSynchronousPIDF.calculate(getYaw(), Timer.getFPGATimestamp());
         differentialDrive.arcadeDrive(0, rotation);
     }
@@ -269,12 +273,12 @@ public class Drive extends Subsystem{
     }
 
     public double getLeftEncoderMeter(){
-        periodicIO.leftMeterDistance = leftEncoder.getPosition() * Constants.DriveConstants.KDRIVETICK2METER;
+        periodicIO.leftMeterDistance = leftEncoder.getPosition() * Constants.DriveConstants.kPOSITION_2_METER;
         return periodicIO.leftMeterDistance;
     }
 
     public double getRightEncoderMeter(){
-        periodicIO.rightMeterDistance = rightEncoder.getPosition() * Constants.DriveConstants.KDRIVETICK2METER;
+        periodicIO.rightMeterDistance = rightEncoder.getPosition() * Constants.DriveConstants.kPOSITION_2_METER;
         return periodicIO.rightMeterDistance;
     }
 

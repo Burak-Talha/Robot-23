@@ -130,8 +130,8 @@ public class Arm extends Subsystem{
 
         public void setSetpointByHandClosedLoop(double rotatableInput, double extensibleInput){
             // This logic goes incrementally like this : current degree = 50, snapshotRequest = 10 , then the setpoint will be 60
-            double rotatableDegreeSetpoint = Constants.ArmConstants.k_ARM_ANGLE_OFFSET + periodicIO.currentShoulderAngle + rotatableInput * Constants.ArmConstants.ANGLE_OF_MOVEMENT;
-            double extensibleMeterSetpoint = Constants.ArmConstants.DEFAULT_ARM_LENGTH + periodicIO.currentExtensibleMeter + extensibleInput * Constants.ArmConstants.RANGE_OF_MOVEMENT;
+            double rotatableDegreeSetpoint = rotatableInput * Constants.ArmConstants.ANGLE_OF_MOVEMENT;
+            double extensibleMeterSetpoint = extensibleInput * Constants.ArmConstants.RANGE_OF_MOVEMENT;
 
             setSetpointAutoClosedLoop(rotatableDegreeSetpoint, extensibleMeterSetpoint);
         }
@@ -139,8 +139,8 @@ public class Arm extends Subsystem{
         public void setSetpointAutoClosedLoop(double shoulderAngleSetpoint, double extensibleMeterSetpoint){
             shoulderAngleSetpoint = validatePIDSetpoints(ValidationType.ROTATABLE, shoulderAngleSetpoint);
             extensibleMeterSetpoint = validatePIDSetpoints(ValidationType.EXTENSIBLE, extensibleMeterSetpoint);
-            periodicIO.shoulderAngleSetpoint = shoulderAngleSetpoint / 360; // Will be add gear ratio's
-            periodicIO.extensibleMeterSetpoint = Units.meter_to_centimeter(extensibleMeterSetpoint) / Constants.ArmConstants.ARM_DISTANCE_PER_REVOLUTION;
+            periodicIO.shoulderAngleSetpoint = shoulderAngleSetpoint * Constants.ArmConstants.kDEGREES_2_POSITION; // Will be add gear ratio's
+            periodicIO.extensibleMeterSetpoint = extensibleMeterSetpoint * Constants.ArmConstants.METER_2_POSITION;
         }
 
         // Validation Of PID Setpoints for mechanical limits
@@ -152,7 +152,7 @@ public class Arm extends Subsystem{
         }
 
         private double validExtensibleSetpoint(double setpointValue){
-            return clampValue(Constants.ArmConstants.EXTENSIBLE_UP_LIMIT, Constants.ArmConstants.EXTENSIBLE_DOWN_LIMIT, setpointValue);
+            return clampValue(Constants.ArmConstants.MAX_ARM_LENGTH, Constants.ArmConstants.DEFAULT_ARM_LENGTH, setpointValue);
         }
         
         private double validRotatableSetpoint(double setpointValue){
@@ -221,7 +221,7 @@ public class Arm extends Subsystem{
     }
 
     public double shoulderAngle(){
-        return rotatableEncoder.getPosition() * Constants.ArmConstants.K_ARM_POSITION2DEGREE;
+        return rotatableEncoder.getPosition() * Constants.ArmConstants.kPOSITION_2_DEGREES;
     }
 
     public double extensibleDistance(){

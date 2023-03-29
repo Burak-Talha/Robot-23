@@ -39,9 +39,9 @@ public class RevColorSensorv3 extends Subsystem{
     public ObjectType currentObjectType(){
         Color detectedColor = colorSensor.getColor();
         ColorMatchResult match = colorMatcher.matchClosestColor(detectedColor);
-        if (match.color == purpleTarget && confidence() > Constants.IntakeConstants.INTAKE_CONFIDANCE_DOWN_LIMIT) {
+        if (match.color == purpleTarget && confidence() > Constants.GripperConstants.INTAKE_CONFIDANCE_DOWN_LIMIT) {
             currentColor = ObjectType.CUBE;
-        } else if (match.color == yellowTarget && confidence() > Constants.IntakeConstants.INTAKE_CONFIDANCE_DOWN_LIMIT) {
+        } else if (match.color == yellowTarget && confidence() > Constants.GripperConstants.INTAKE_CONFIDANCE_DOWN_LIMIT) {
             currentColor = ObjectType.CONE;
         } else {
             currentColor = ObjectType.UNKNOWN;

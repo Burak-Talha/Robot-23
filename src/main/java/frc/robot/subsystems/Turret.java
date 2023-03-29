@@ -141,12 +141,13 @@ public class Turret extends Subsystem {
         periodicIO.turretVelocity = Math.abs(getTurretVelocity());
     }
 
+    // Unit : m/s
     public double getTurretVelocity(){
         return turretEncoder.getVelocity() / 60;
     }
 
     public double turretAngle(){
-        return getTurretPosition() * Constants.TurretConstants.K_TURRET_TICKS2DEGREE;
+        return getTurretPosition() * Constants.TurretConstants.K_TURRET_POSITION_2_DEGREES;
     }
 
     public double getTurretPosition(){
