@@ -6,10 +6,10 @@ package frc.robot.auto.commands;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Gripper;
 
 public class GetOutSecondCmd extends CommandBase {
-  Intake intake;
+  Gripper intake;
 
   double startTime;
   double second;
@@ -17,7 +17,7 @@ public class GetOutSecondCmd extends CommandBase {
   /** Creates a new GetInSecondCmd. */
   public GetOutSecondCmd(double second) {
     // Use addRequirements() here to declare subsystem dependencies.
-    intake = Intake.getInstance();
+    intake = Gripper.getInstance();
     this.second = second;
     startTime = Timer.getFPGATimestamp();
   }
@@ -34,7 +34,9 @@ public class GetOutSecondCmd extends CommandBase {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    intake.stopSystem();
+  }
 
   // Returns true when the command should end.
   @Override

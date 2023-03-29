@@ -14,7 +14,7 @@ import frc.robot.controlpanel.IOperatorPanel;
 import frc.robot.controlpanel.OperatorPanel;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Drive;
-import frc.robot.subsystems.Intake;
+import frc.robot.subsystems.Gripper;
 import frc.robot.subsystems.SuperStructure;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.SuperStructure.SystemState;
@@ -37,7 +37,7 @@ public class Robot extends TimedRobot {
   Drive drive = Drive.getInstance();
   Arm arm = Arm.getInstance();
   Turret turret = Turret.getInstance();
-  Intake intake = Intake.getInstance();
+  Gripper intake = Gripper.getInstance();
 
   /**
    * This function is run when the robot is first started up and should be used for any

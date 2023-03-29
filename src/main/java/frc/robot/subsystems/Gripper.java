@@ -9,7 +9,7 @@ import frc.robot.Constants;
 import frc.robot.lib.frc254.Subsystem;
 import frc.robot.lib.frc254.util.SynchronousPIDF;
 
-public class Intake extends Subsystem{
+public class Gripper extends Subsystem{
 
 
     CANSparkMax intakeMaster;
@@ -24,17 +24,17 @@ public class Intake extends Subsystem{
 
     private IntakeMode currentIntakeMode = IntakeMode.MANUAL;
 
-    Intake(){
-        intakeMaster = new CANSparkMax(Constants.IntakeConstants.INTAKE_MASTER_ID, MotorType.kBrushless);
-        intakePidf = new SynchronousPIDF(Constants.IntakeConstants.INTAKE_KP, Constants.IntakeConstants.INTAKE_KI, Constants.IntakeConstants.INTAKE_KD, Constants.IntakeConstants.INTAKE_KF);
+    Gripper(){
+        intakeMaster = new CANSparkMax(Constants.GripperConstants.INTAKE_MASTER_ID, MotorType.kBrushless);
+        intakePidf = new SynchronousPIDF(Constants.GripperConstants.INTAKE_KP, Constants.GripperConstants.INTAKE_KI, Constants.GripperConstants.INTAKE_KD, Constants.GripperConstants.INTAKE_KF);
         intakeEncoder = intakeMaster.getEncoder();
     }
 
-    private static Intake intake = null;
+    private static Gripper intake = null;
 
-    public static Intake getInstance(){
+    public static Gripper getInstance(){
         if(intake == null){
-            intake = new Intake();
+            intake = new Gripper();
         }
         return intake;
     }
@@ -60,7 +60,7 @@ public class Intake extends Subsystem{
     }
 
     public void setSetpointOuttake(){
-        intakePidf.setSetpoint(Constants.IntakeConstants.INTAKE_RPM_RATE * superStructure.getTargetDistanceToArm());
+        intakePidf.setSetpoint(Constants.GripperConstants.INTAKE_RPM_RATE * superStructure.getTargetDistanceToArm());
     }
 
     private void calculateOuttakeDemand(){
