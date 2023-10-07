@@ -72,6 +72,7 @@ public class TargetFinder {
             double distance = robotPose.getTranslation().getDistance(t.target.getTranslation().toTranslation2d());
             if(distance < minDistance){
                 target = t;
+                minDistance = distance;
             }
         }
 
